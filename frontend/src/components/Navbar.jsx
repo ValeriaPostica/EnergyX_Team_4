@@ -21,7 +21,7 @@ const Navbar = forwardRef(({ setCurrentPage, currentPage, role }, ref) => {
       
           <a className="navbar-brand" href="#" onClick={() => handleNavClick("home")}>
             <i className="bi bi-lightning-charge-fill me-2"></i>
-            EnergiX
+            EnergyX
           </a>
 
           <button className="navbar-toggler" type="button" onClick={handleToggle}>
