@@ -198,9 +198,9 @@ const PredictionsPage = () => {
         </div>
       </div>
 
-      {/* Stats Cards - Compact */}
+      {/* Stats Cards - Compact (Trend removed) */}
       <div className="row">
-        <div className="col-md-4 mb-2">
+        <div className="col-md-6 mb-2">
           <div className="card border-info h-100">
             <div className="card-body p-3 text-center">
               <h6 className="card-title text-info mb-1">Accuracy</h6>
@@ -209,16 +209,7 @@ const PredictionsPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-md-4 mb-2">
-          <div className="card border-success h-100">
-            <div className="card-body p-3 text-center">
-              <h6 className="card-title text-success mb-1">Trend</h6>
-              <h4 className="text-success mb-1">+2.1%</h4>
-              <small className="text-muted">vs last period</small>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4 mb-2">
+        <div className="col-md-6 mb-2">
           <div className="card border-warning h-100">
             <div className="card-body p-3 text-center">
               <h6 className="card-title text-warning mb-1">Peak</h6>
