@@ -1,0 +1,94 @@
+.hero {
+  min-height: 105vh;
+  background: linear-gradient(135deg, #071363ff 0%, #68acf5ff 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("https://www.transparenttextures.com/patterns/cubes.png");
+  opacity: 0.12;
+}
+.hero h1 {
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.hero p {
+  opacity: 0.9;
+}
+.hero .btn {
+  border-radius: 30px;
+  padding: 12px 32px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.hero .btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+}
+
+.stats .stat-card {
+  border-radius: 14px;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+.stats .stat-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15);
+}
+.stats i {
+  font-size: 2.8rem;
+}
+
+.solution h2 {
+  color: #004aad;
+}
+.solution .features li {
+  margin-bottom: 12px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+.solution .features li:hover {
+  transform: translateX(6px);
+}
+
+.cta {
+  background: linear-gradient(135deg, #003366 0%, #004aad 100%);
+}
+.cta h2 {
+  font-size: 2rem;
+}
+.cta p {
+  opacity: 0.9;
+}
+.cta .btn {
+  border-radius: 30px;
+  padding: 12px 32px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.cta .btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+}
+
+.animate-fadeDown {
+  animation: fadeDown 1s ease forwards;
+}
+.animate-fadeUp {
+  animation: fadeUp 1.2s ease forwards;
+}
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

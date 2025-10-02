@@ -1,0 +1,84 @@
+.hourly-page {
+  width: 100%;
+  max-width: 1200px;  
+  margin: 0 auto;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;   
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.description {
+  font-size: 0.95rem;
+  max-width: 700px;
+  margin: 0 auto 20px;
+  color: #333;
+  line-height: 1.5;
+}
+
+
+.button-group button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #87c3f7;
+  color: #134675;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.button-group button:hover {
+  background-color: #5aaae0;
+}
+
+.button-group button.active {
+  background-color: #134675;
+  color: #fff;
+}
+
+.chart-container {
+  background: #fff;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+  width: 100%;
+  height: 400px;    
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (max-width: 768px) {
+  .hourly-page {
+    padding: 10px;
+  }
+
+  .button-group button {
+    flex: 1 1 auto;
+    min-width: 90px;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+
+  .chart-container {
+    height: 350px;   
+    padding: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-container {
+    height: 320px;
+  }
+}

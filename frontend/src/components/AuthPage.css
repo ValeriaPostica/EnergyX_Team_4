@@ -1,0 +1,112 @@
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+
+  background: linear-gradient(135deg, #002147 0%, #004aad 50%, #0066cc 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("https://www.transparenttextures.com/patterns/hexellence.png");
+  opacity: 0.12;
+}
+
+.choice-container {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 50px;
+  border-radius: 16px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  color: white;
+  max-width: 650px;
+  width: 100%;
+  animation: fadeIn 0.8s ease;
+}
+
+.role-card {
+  flex: 1;
+  min-width: 200px;
+  max-width: 250px;
+  background: white;
+  color: #333;
+  border-radius: 14px;
+  padding: 25px 20px;
+  border: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+.role-card h4 {
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.role-card i {
+  color: #004aad;
+}
+.role-card:hover {
+  transform: translateY(-8px);
+  border: 2px solid #004aad;
+}
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.8s ease;
+  z-index: 1;
+}
+
+.auth-card h2 {
+  font-weight: 700;
+  color: #004aad;
+}
+
+.form-control {
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  transition: all 0.3s ease;
+}
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-primary {
+  background: #004aad;
+  border: none;
+  padding: 12px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+.btn-primary:hover {
+  background: #003c8a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn-link {
+  text-decoration: none;
+  font-size: 0.9rem;
+  color: #007bff;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}

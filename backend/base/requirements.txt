@@ -1,0 +1,8 @@
+Flask==3.1.2
+pandas==2.3.2
+flask-cors                                                                             
+openai
+torch>=2.1.0
+xlstm>=0.1.5
+mlstm_kernels>=0.1.2
+numpy>=1.24

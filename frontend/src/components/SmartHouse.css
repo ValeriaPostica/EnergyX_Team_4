@@ -1,0 +1,78 @@
+.smart-house-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f8faff;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.controls div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls input[type="number"] {
+  width: 80px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.controls input[type="checkbox"] {
+  transform: scale(1.3);
+}
+
+.devices-grid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.device-card {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  width: 170px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.bulb {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+}
+
+.bulb.on {
+  background: #4caf50;
+  box-shadow: 0 0 20px #4caf50;
+}
+
+.bulb.off {
+  background: #d9534f;
+  box-shadow: 0 0 10px #d9534f;
+}
+
+.note {
+  margin-top: 20px;
+  font-size: 0.95rem;
+  text-align: left;
+  background: #eef5ff;
+  padding: 12px;
+  border-radius: 8px;
+}

@@ -1,0 +1,85 @@
+.Navbar {
+  background: linear-gradient(90deg, #001f3f, #004aad);
+  padding: 24px 20px;
+}
+.Navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #fff;
+  text-decoration: none;
+}
+.navbar-toggler {
+  border: none;
+}
+.navbar-toggler-icon {
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='rgba%28255,255,255,1%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  z-index: 9998;
+}
+.side-menu {
+  position: fixed;
+  top: 0;
+  right: -260px;
+  width: 240px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(0,31,63,0.85),   
+    rgba(0,74,173,0.85)  
+  );
+  color: white;
+  box-shadow: -4px 0 12px rgba(0,0,0,0.25);
+  transition: right 0.3s ease;
+  padding: 60px 20px;
+  z-index: 9999;
+}
+.side-menu.open {
+  right: 0;
+}
+
+.close-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 1.8rem;
+  color: #fff;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.close-btn:hover {
+  transform: scale(1.1);
+  color: #ffdd57;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 50px 0 0 0;
+  margin: 0;
+}
+.menu-list li {
+  padding: 14px 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  transition: color 0.2s;
+}
+.menu-list li:hover {
+  color: #ffdd57;
+}

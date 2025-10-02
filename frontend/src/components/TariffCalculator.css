@@ -1,0 +1,79 @@
+.tariff-container {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 20px 32px; 
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.tariff-title {
+  margin-bottom: 20px;
+  color: #004aad;
+}
+
+.chart-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+  margin: 0 auto 20px;
+  height: 400px;
+  width: 95%;
+}
+
+.slider-box {
+  margin: 20px 0;
+}
+
+.slider-box input[type="range"] {
+  width: 70%;
+  margin-top: 10px;
+}
+
+.cost-box {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+.cost-box p {
+  margin: 6px 0;
+}
+
+.description-box {
+  margin: 30px auto 0;
+  background: #f8faff;
+  padding: 18px 28px; 
+  border-radius: 10px;
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #333;
+  width: 95%;
+  box-sizing: border-box; 
+}
+
+.description-box h4 {
+  margin-bottom: 10px;
+  color: #004aad;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .tariff-container {
+    padding: 16px;
+  }
+
+  .chart-box {
+    height: 300px;
+    padding: 12px;
+    width: 100%;
+  }
+
+  .description-box {
+    width: 100%;
+  }
+
+  .slider-box input[type="range"] {
+    width: 100%;
+  }
+}
