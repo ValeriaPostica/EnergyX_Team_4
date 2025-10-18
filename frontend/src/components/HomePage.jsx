@@ -1,6 +1,24 @@
 import React from "react";
 import "./HomePage.css";
 
+const currentUsage = 11756; // Example static value, replace with real data if available
+const smartHouses = 11871; // Example static value, replace with real data if available
+const greenEnergy = 34;
+const co2Reduction = 12;
+
+        (async () => {
+      try {
+        await fetch("http://localhost:5000/simple_log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ line: `The current usage of electricity in Moldova is: ${currentUsage} MW\nNumber of houses with smart meters connected: ${smartHouses} \nPercentage of green energy used: ${greenEnergy}%\nPercentage of CO₂ reduction achieved: ${co2Reduction}%` }),
+        });
+        console.log("Sent simple_log");
+      } catch (err) {
+        console.warn("Failed to send simple_log", err);
+      }
+    })();
+
 function HomePage({ openMenu }) {
   return (
     <div className="HomePage">

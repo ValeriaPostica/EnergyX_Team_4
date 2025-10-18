@@ -18,7 +18,24 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
     setRole("consumer");
     setUserId(meterId);     // store smart meter ID globally
     setCurrentPage("home");
+    // Clear simple_log on registration/login
+    fetch("http://localhost:5000/simple_log/clear", { method: "POST" }).catch((err) =>
+      console.warn("Could not clear simple_log:", err)
+    );
+                (async () => {
+      try {
+        await fetch("http://localhost:5000/simple_log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ line: `0)The smart meter with ID ${meterId} has been accessed.` }),
+        });
+        console.log("Sent simple_log");
+      } catch (err) {
+        console.warn("Failed to send simple_log", err);
+      }
+    })();
   };
+
 
   return (
     <div className="auth-wrapper">

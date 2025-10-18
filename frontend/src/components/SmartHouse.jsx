@@ -39,6 +39,19 @@ function SmartHouse() {
   const lightsOn = motion;
   const energySaverOn = energyUsage > 5;
 
+          (async () => {
+      try {
+        await fetch("http://localhost:5000/simple_log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ line: `3)The current temperature is: ${temperature}°C; Motion detected: ${motion ? "Yes" : "No"}; Energy usage: ${energyUsage} kWh; The thermostat is ${thermostatOn ? "On" : "Off"}; The air conditioner is ${acOn ? "On" : "Off"}; The lights are ${lightsOn ? "On" : "Off"}; Energy saver mode is ${energySaverOn ? "On" : "Off"}` }),
+        });
+        console.log("Sent simple_log");
+      } catch (err) {
+        console.warn("Failed to send simple_log", err);
+      }
+    })();
+
   return (
     <div className="smart-house-container">
       <h2>Smart House IoT (with Server)</h2>

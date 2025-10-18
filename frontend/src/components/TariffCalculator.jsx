@@ -56,6 +56,19 @@ function TariffCalculator() {
     fetchTariff();
   }, [hour]);
 
+
+          (async () => {
+      try {
+        await fetch("http://localhost:5000/simple_log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ line: `2)The previous cost of the tariff the user was charged is: ${previousCost} MDL; The current estimated cost is: ${currentCost} MDL` }),
+        });
+        console.log("Sent simple_log");
+      } catch (err) {
+        console.warn("Failed to send simple_log", err);
+      }
+    })();
   // Chart data
   const labels = Array.from({ length: 25 }, (_, i) =>
     i.toString().padStart(2, "0")

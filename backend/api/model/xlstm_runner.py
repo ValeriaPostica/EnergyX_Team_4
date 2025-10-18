@@ -186,6 +186,5 @@ def m_eval(user_index: int, week: bool = False, location: int = -1) -> List[floa
 
 
 if __name__ == "__main__":
-    # xample usage for Balti
-    # Location is dominant over user index if both are provided
+
     print("Returned", m_eval(2,week=False, location=0))

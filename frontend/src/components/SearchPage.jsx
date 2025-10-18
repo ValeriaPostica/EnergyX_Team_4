@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import "./SearchPage.css";
 
 const SearchPage = () => {
-  const [time, setTime] = useState("08.06.2025 12:00:00");
+  const [time, setTime] = useState("03.06.2025 00:00:00");
   const [cityData, setCityData] = useState({});
   const [loading, setLoading] = useState(true);
 

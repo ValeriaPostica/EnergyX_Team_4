@@ -52,9 +52,9 @@ const HourlyConsumption = () => {
         const today = result.filter(x =>   
           ["2025-06-08"].includes(x["Date of Second Val"].split(" ")[0]) && x["Date of Second Val"].endsWith("00:00")
         )
-        console.log(today)
         let t_arr = today.map(x => x["Import Delta"])
         t_arr = t_arr.concat(Array(25 - t_arr.length).fill(t_arr[t_arr.length - 1] + 1));
+        console.log("Fetched consumption todayyyy:", t_arr);
 
         const yesterday = result.filter(x => 
           ["2025-06-07"].includes(x["Date of Second Val"].split(" ")[0]) && x["Date of Second Val"].endsWith("00:00")
@@ -63,6 +63,37 @@ const HourlyConsumption = () => {
         y_arr = y_arr.concat(Array(25 - y_arr.length).fill(y_arr[y_arr.length - 1] + 1));
 
         console.log("Fetched consumption data:", t_arr, y_arr);
+
+        const fmtHour = (i) => {
+          const hour = Number(i);
+          const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+          const ampm = hour < 12 ? 'am' : 'pm';
+          return `${hour12} ${ampm}`;
+        };
+
+        const formatHourlyArray = (arr) => {
+          return arr
+            .map((val, idx) => `${fmtHour(idx)} = ${Math.round(Number(val) || 0)} kW`)
+            .join(', ');
+        };
+
+        const today_str = formatHourlyArray(t_arr);
+        const yesterday_str = formatHourlyArray(y_arr);
+        const tomorrow_str = Array.isArray(result2) ? formatHourlyArray(result2) : String(result2); 
+
+        (async () => {
+      try {
+        await fetch("http://localhost:5000/simple_log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+
+          body: JSON.stringify({ line: `1) Hourly consumption for yesterday: ${yesterday_str}; today: ${today_str}; tomorrow: ${tomorrow_str}` }),
+        });
+        console.log("Sent simple_log");
+      } catch (err) {
+        console.warn("Failed to send simple_log", err);
+      }
+    })();
 
         // Asum că backend-ul întoarce:
         // { yesterday: [...], today: [...], tomorrow: [...] }

@@ -46,5 +46,4 @@ def calculate_total_unique_ids():
     print(len(unique_ids))
 
 if __name__ == "__main__":
-    # Computes the current electrisity usage
     calculate_total_unique_ids()
