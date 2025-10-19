@@ -1,0 +1,19 @@
+Flask==2.3.3
+flask-cors==3.0.10
+pandas==2.3.2
+numpy>=1.25.0
+
+openai>=1.0.0
+
+# Excel/IO support for pandas
+openpyxl==3.1.2
+xlrd==2.0.1
+
+# Optional/legacy model-related packages referenced in the repo
+# torch>=2.1.0
+#  langchain 
+#  langchain_community
+#  langchain_core
+#  langchain_text_splitters 
+#  langgraph
+#  bs4
