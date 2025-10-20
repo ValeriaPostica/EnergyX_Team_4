@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_PASSWORD: 11111 #This is the password for postgres user
+    ports:
+      - "5432:5432"
+    command: postgres -c datestyle=ISO,DMY
+    volumes:
+      - pbl_data:/var/lib/postgresql/data
+volumes:
+  pbl_data:
+      
+
