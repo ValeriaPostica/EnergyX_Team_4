@@ -11,6 +11,12 @@ python3 -m venv .venv
 ```bash
 pip install -r backend/api/requirements.txt
 ```
+```bash
+cd frontend
+```
+```bash
+npm i
+```
 #### One command to run the project
 ```bash
 python3 run.py
