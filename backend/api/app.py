@@ -2,19 +2,25 @@ from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
 import diff_data
-# import aiProvider
-# import aiCustomer
+import aiProvider
+import aiCustomer
 import os
-# import openai
-# from model.xlstm_runner import m_eval
+import openai
+from model.xlstm_runner import m_eval
 # Commented our lines below and above use ai implementations
 from gauss_tarrif import hourly_consumption
 from simple_log_handler import simple_log, simple_log_clear
 import json
 
-# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-# client = openai.OpenAI(api_key=OPENAI_API_KEY)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+client = None
+
+try:
+    client = openai.OpenAI(api_key=OPENAI_API_KEY)
+except Exception as e:
+    print(f"Warning: Could not initialize OpenAI client: {e}")
+    
 # Use relative paths for local development
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -82,9 +88,9 @@ def diffs(id):
 def keys_route():
     return keys
 
-# @app.route("/calc")
-# def calc():
-#     return diff_data.calc_consump(data)
+@app.route("/calc")
+def calc():
+    return diff_data.calc_consump(data)
 
 ## 7->11, 18->22
 
@@ -119,50 +125,56 @@ def give_color() :
 def get_regions():
     return calc_data
 
-# @app.route("/ai")
-# def get_ai_resp():
-#     return aiProvider.get_ai_recommendations(client, consumption_data)
+@app.route("/ai")
+def get_ai_resp():
 
-# @app.route("/ai/chat", methods=['POST'])
-# def chat_q():
-#     json_data = request.get_json()  # parse JSON body
-#     if not json_data or "message" not in json_data:
-#         return jsonify({"error": "Missing 'message' field"}), 400
+    if client is None:
+        return jsonify({"error": "OpenAI client not initialized"}), 500
+
+    return aiProvider.get_ai_recommendations(client, consumption_data)
+
+@app.route("/ai/chat", methods=['POST'])
+def chat_q():
+    if client is None:
+        return jsonify({"error": "OpenAI client not initialized"}), 500
+    json_data = request.get_json()  # parse JSON body
+    if not json_data or "message" not in json_data:
+        return jsonify({"error": "Missing 'message' field"}), 400
     
-#     message = json_data["message"]
-#     return {"response": aiCustomer.get_ai_response(message)}
+    message = json_data["message"]
+    return {"response": aiCustomer.get_ai_response(message)}
 
 @app.route("/consumptions")
 def give_consumption():
     return consumption_data
 
-# @app.route("/pred/week")
-# def w_pred():
-#     return m_eval(user_index=0, week=True)
+@app.route("/pred/week")
+def w_pred():
+    return m_eval(user_index=0, week=True)
 
-# @app.route("/pred")
-# def pred():
-#     return m_eval(user_index=0)
+@app.route("/pred")
+def pred():
+    return m_eval(user_index=0)
 
 
-# @app.route("/pred/week/<user_id>")
-# def w_pred_user(user_id):
-#     try:
-#         user_id_int = int(user_id)
-#         user_index = get_user_index(user_id_int)
-#         return m_eval(user_index=user_index, week=True)
-#     except ValueError:
-#         return jsonify({"error": "Invalid user ID"}), 400
+@app.route("/pred/week/<user_id>")
+def w_pred_user(user_id):
+    try:
+        user_id_int = int(user_id)
+        user_index = get_user_index(user_id_int)
+        return m_eval(user_index=user_index, week=True)
+    except ValueError:
+        return jsonify({"error": "Invalid user ID"}), 400
 
-# @app.route("/pred/<user_id>")
-# def pred_user(user_id):
-#     try:
-#         user_id_int = int(user_id)
-#         user_index = get_user_index(user_id_int)
-#         print(f"DEBUG: pred_user called with user_id={user_id_int}, mapped to user_index={user_index}")
-#         return m_eval(user_index=user_index)
-#     except ValueError:
-#         return jsonify({"error": "Invalid user ID"}), 400
+@app.route("/pred/<user_id>")
+def pred_user(user_id):
+    try:
+        user_id_int = int(user_id)
+        user_index = get_user_index(user_id_int)
+        print(f"DEBUG: pred_user called with user_id={user_id_int}, mapped to user_index={user_index}")
+        return m_eval(user_index=user_index)
+    except ValueError:
+        return jsonify({"error": "Invalid user ID"}), 400
 
 @app.route("/debug/user_mapping/<user_id>")
 def debug_user_mapping(user_id):
@@ -180,67 +192,67 @@ def debug_user_mapping(user_id):
         return jsonify({"error": "Invalid user ID"}), 400
 
 # Location-based prediction routes
-# @app.route("/pred/location/<location_name>")
-# def pred_location(location_name):
-#     """Get predictions for a specific location"""
-#     try:
-#         # Load regions index
-#         regions_index_path = os.path.join(BASE_DIR, "data", "model_data", "regions_index.json")
-#         with open(regions_index_path, "r", encoding="utf-8") as f:
-#             regions_data = json.load(f)
+@app.route("/pred/location/<location_name>")
+def pred_location(location_name):
+    """Get predictions for a specific location"""
+    try:
+        # Load regions index
+        regions_index_path = os.path.join(BASE_DIR, "data", "model_data", "regions_index.json")
+        with open(regions_index_path, "r", encoding="utf-8") as f:
+            regions_data = json.load(f)
         
-#         regions_list = regions_data["regions"]
+        regions_list = regions_data["regions"]
         
-#         # Find location index
-#         location_index = None
-#         for i, region in enumerate(regions_list):
-#             if region.lower() == location_name.lower():
-#                 location_index = i
-#                 break
+        # Find location index
+        location_index = None
+        for i, region in enumerate(regions_list):
+            if region.lower() == location_name.lower():
+                location_index = i
+                break
         
-#         if location_index is None:
-#             return jsonify({
-#                 "error": f"Location '{location_name}' not found",
-#                 "available_locations": regions_list
-#             }), 400
+        if location_index is None:
+            return jsonify({
+                "error": f"Location '{location_name}' not found",
+                "available_locations": regions_list
+            }), 400
         
-#         # Get predictions using location index
-#         predictions = m_eval(user_index=location_index, week=False, location=location_index)
-#         return jsonify(predictions)
+        # Get predictions using location index
+        predictions = m_eval(user_index=location_index, week=False, location=location_index)
+        return jsonify(predictions)
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# @app.route("/pred/location/<location_name>/week")
-# def pred_location_week(location_name):
-#     """Get weekly predictions for a specific location"""
-#     try:
-#         # Load regions index
-#         regions_index_path = os.path.join(BASE_DIR, "data", "model_data", "regions_index.json")
-#         with open(regions_index_path, "r", encoding="utf-8") as f:
-#             regions_data = json.load(f)
+@app.route("/pred/location/<location_name>/week")
+def pred_location_week(location_name):
+    """Get weekly predictions for a specific location"""
+    try:
+        # Load regions index
+        regions_index_path = os.path.join(BASE_DIR, "data", "model_data", "regions_index.json")
+        with open(regions_index_path, "r", encoding="utf-8") as f:
+            regions_data = json.load(f)
         
-#         regions_list = regions_data["regions"]
+        regions_list = regions_data["regions"]
         
-#         # Find location index
-#         location_index = None
-#         for i, region in enumerate(regions_list):
-#             if region.lower() == location_name.lower():
-#                 location_index = i
-#                 break
+        # Find location index
+        location_index = None
+        for i, region in enumerate(regions_list):
+            if region.lower() == location_name.lower():
+                location_index = i
+                break
         
-#         if location_index is None:
-#             return jsonify({
-#                 "error": f"Location '{location_name}' not found",
-#                 "available_locations": regions_list
-#             }), 400
+        if location_index is None:
+            return jsonify({
+                "error": f"Location '{location_name}' not found",
+                "available_locations": regions_list
+            }), 400
         
-#         # Get weekly predictions using location index
-#         predictions = m_eval(user_index=location_index, week=True, location=location_index)
-#         return jsonify(predictions)
+        # Get weekly predictions using location index
+        predictions = m_eval(user_index=location_index, week=True, location=location_index)
+        return jsonify(predictions)
         
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/locations")
 def get_locations():

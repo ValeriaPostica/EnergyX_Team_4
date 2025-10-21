@@ -25,11 +25,15 @@ os.environ["LANGCHAIN_TRACING"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_PROJECT"] = "pr-indelible-anywhere-47"
 
-llm = init_chat_model("gpt-4o-mini", model_provider="openai")
+llm = None
+try:
+	llm = init_chat_model("gpt-4o-mini", model_provider="openai")
+except Exception:
+	print("Warning: Could not initialize chat model llm.")
 
 # Set your OpenAI API key here or via environment variable OPENAI_API_KEY
-if not os.environ.get("OPENAI_API_KEY"):
-	os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter API key for OpenAI: ")
+# if not os.environ.get("OPENAI_API_KEY"):
+# 	os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter API key for OpenAI: ")
 
 # System prompt to define AI's role and response style
 SYSTEM_PROMPT = (
@@ -99,7 +103,8 @@ def get_ai_response(question: str) -> str:
 		if prompt is not None:
 			# If the hub prompt exists, invoke it in the original way.
 			messages = prompt.invoke({"question": question, "context": docs_content})
-			response = llm.invoke(messages)
+			if llm is not None:
+				response = llm.invoke(messages)
 		else:
 			# Fallback: create chat messages manually. Provide system prompt and
 			# put retrieved documents into the user message as context.
@@ -114,7 +119,10 @@ Question: {question}
 				{"role": "user", "content": user_content},
 			]
 			# Invoke the chat model with the messages list
-			response = llm.invoke(messages)
+			if llm is not None:
+				response = llm.invoke(messages)
+			else:
+				return None
 		return response.content if hasattr(response, "content") else str(response)
 	except Exception as e:
 		# Return a simple fallback string on error so callers don't crash

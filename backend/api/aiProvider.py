@@ -114,20 +114,21 @@ def get_ai_recommendations(client, energy_data: dict, model: str = "gpt-3.5-turb
 
 if __name__ == "__main__":
 	energy_data = {"Balti": 27876095,
-  "Cahul": 35090435,
-  "Chisinau": 31165585,
-  "Comrat": 33084887,
-  "Cricova": 28944101,
-  "Edinet": 31459213,
-  "Floresti": 33328896,
-  "Hincesti": 34423357,
-  "Orhei": 22273335,
-  "Rezina": 40183940,
-  "Soroca": 25077732,
-  "Stefan Voda": 31567167,
-  "Tiraspol": 28081344,
-  "Ungheni": 31092545,
-  "Vadul lui Voda": 21735612}
+	"Cahul": 35090435,
+	"Chisinau": 31165585,
+	"Comrat": 33084887,
+	"Cricova": 28944101,
+	"Edinet": 31459213,
+	"Floresti": 33328896,
+	"Hincesti": 34423357,
+	"Orhei": 22273335,
+	"Rezina": 40183940,
+	"Soroca": 25077732,
+	"Stefan Voda": 31567167,
+	"Tiraspol": 28081344,
+	"Ungheni": 31092545,
+	"Vadul lui Voda": 21735612}
+
 	OPENAI_API_KEY = "openAIkey"
 	client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
