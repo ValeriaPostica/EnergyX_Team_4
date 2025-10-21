@@ -12,6 +12,23 @@ import numpy as np
 import torch
 from torch import nn
 
+import os
+
+"""
+    Commit app.py and other files and merge with main branch before this file
+"""
+
+
+# Get the correct paths to the model files
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # backend/api/model/
+API_DIR = os.path.dirname(SCRIPT_DIR)                    # backend/api/
+BACKEND_DIR = os.path.dirname(API_DIR)                   # backend/
+MODEL_DATA_DIR = os.path.join(BACKEND_DIR, "data", "model_data")
+MODEL_PATH = os.path.join(MODEL_DATA_DIR, "model.pt")
+USER_DATA_PATH = os.path.join(MODEL_DATA_DIR, "processed.json")
+LOCAL_DATA_PATH = os.path.join(MODEL_DATA_DIR, "processed_regions.json")
+
+
 # --------------------------- IO ---------------------------
 def load_array2d(path: str) -> np.ndarray:
     if path.endswith(".npy"):
@@ -50,18 +67,18 @@ class GlobalLSTMForecaster(nn.Module):
         return self.head(last)
 
 # --------------------------- Forecast ---------------------------
+ckpt = torch.load(MODEL_PATH, map_location="cpu")
+user_data = load_array2d(USER_DATA_PATH)             # [U, T]
 @torch.no_grad()
 def forecast_user(ckpt_path: str, data_path: str, user_idx: int, n: int) -> List[float]:
     # Load checkpoint & data
-    ckpt = torch.load(ckpt_path, map_location="cpu")
     hyper = ckpt["hyper"]
     means = ckpt["scalers"]["mean"]
     stds  = ckpt["scalers"]["std"]
     lookback = hyper["lookback"]
     U_saved = hyper["num_users"]
 
-    data = load_array2d(data_path)             # [U, T]
-    U, T = data.shape
+    U, T = user_data.shape
     if user_idx < 0 or user_idx >= U:
         raise IndexError(f"user index {user_idx} out of range 0..{U-1}")
     if U != U_saved:
@@ -86,7 +103,7 @@ def forecast_user(ckpt_path: str, data_path: str, user_idx: int, n: int) -> List
     sd = float(stds[user_idx])
     s = sd if sd > 1e-8 else 1.0
 
-    series = data[user_idx]                    # [T]
+    series = user_data[user_idx]                    # [T]
     if T <= lookback:
         raise ValueError(f"Series length {T} must be > lookback={lookback}")
     window = ((series[-lookback:] - mu) / s).astype(np.float32)     # [L]
@@ -103,17 +120,18 @@ def forecast_user(ckpt_path: str, data_path: str, user_idx: int, n: int) -> List
     preds = (np.array(preds_scaled, dtype=np.float32) * s + mu).tolist()
     return preds
 
+
+local_data = load_array2d(LOCAL_DATA_PATH)             # [R, T] regions x time
+
 @torch.no_grad()
 def forecast_region_series(ckpt_path: str, data_path: str, region_idx: int, n: int) -> List[float]:
     """Forecast n steps for a single region series using its own mean/std,
     while feeding a constant embedding id=0 just to satisfy the model."""
-    ckpt = torch.load(ckpt_path, map_location="cpu")
     hyper = ckpt["hyper"]
     lookback = hyper["lookback"]
     U_saved  = hyper["num_users"]  # users _in training_, needed for embedding size
 
-    data = load_array2d(data_path)             # [R, T] regions x time
-    R, T = data.shape
+    R, T = local_data.shape
     if region_idx < 0 or region_idx >= R:
         raise IndexError(f"region index {region_idx} out of range 0..{R-1}")
 
@@ -130,7 +148,7 @@ def forecast_region_series(ckpt_path: str, data_path: str, region_idx: int, n: i
     model.eval()
 
     # Use region's own scaler (not checkpoint scalers)
-    series = data[region_idx]                # [T]
+    series = local_data[region_idx]                # [T]
     if T <= lookback:
         raise ValueError(f"Series length {T} must be > lookback={lookback}")
 
@@ -159,16 +177,7 @@ def forecast_region_series(ckpt_path: str, data_path: str, region_idx: int, n: i
     return preds
 
 
-import os
 
-# Get the correct paths to the model files
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # backend/api/model/
-API_DIR = os.path.dirname(SCRIPT_DIR)                    # backend/api/
-BACKEND_DIR = os.path.dirname(API_DIR)                   # backend/
-MODEL_DATA_DIR = os.path.join(BACKEND_DIR, "data", "model_data")
-MODEL_PATH = os.path.join(MODEL_DATA_DIR, "model.pt")
-USER_DATA_PATH = os.path.join(MODEL_DATA_DIR, "processed.json")
-LOCAL_DATA_PATH = os.path.join(MODEL_DATA_DIR, "processed_regions.json")
 
 # Quick eval of the integer sequence 0..24
 def m_eval(user_index: int, week: bool = False, location: int = -1) -> List[float]:
