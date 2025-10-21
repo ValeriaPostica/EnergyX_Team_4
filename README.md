@@ -1,7 +1,20 @@
 ## EnergyX_Team_4
 
 To run the application you need to run two seperate executables one is the api and the second one is the web server
-
+#### First Run
+```bash
+python3 -m venv .venv
+```
+```bash
+.venv\Scripts\Activate.ps1
+```
+```bash
+pip install -r backend/api/requirements.txt
+```
+#### One command to run the project
+```bash
+python3 run.py
+```
 #### Api 
 Located in backend/api to run the api you need to first install the packages that are needed i strongly recomend when using python to have a virtual enviroment setup you can setup virtual envirement and install the reqired packages using
 
@@ -23,7 +36,7 @@ __For the first run__
 ```bash
 flask run
 ```
-
+#### Frontend
 For the frontend you need to have another terminal and run
 ```bash
 cd frontend
