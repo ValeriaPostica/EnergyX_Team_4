@@ -12,6 +12,7 @@ xlrd==2.0.1
 # Optional/legacy model-related packages referenced in the repo
 torch>=2.1.0
 langchain 
+langchain_openai 
 langchain_community
 langchain_core
 langchain_text_splitters 
