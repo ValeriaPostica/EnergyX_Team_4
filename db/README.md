@@ -16,5 +16,5 @@ The included [data.sql](data.sql) file is the last dump with the interpolated da
 
 This one example to a connection string for the given docker-compose file
 ```bash
-postgresql://postgres:11111@localhost:5432/postgres
+postgresql://postgres:11111@localhost:5433/postgres
 ```

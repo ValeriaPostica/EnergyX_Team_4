@@ -20,10 +20,11 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 import getpass
 import os
-os.environ["LANGCHAIN_API_KEY"] = "langchainkey"
+os.environ["LANGCHAIN_API_KEY"] = "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"
 os.environ["LANGCHAIN_TRACING"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_PROJECT"] = "pr-indelible-anywhere-47"
+os.environ["OPENAI_API_KEY"] = "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"
 
 llm = None
 try:
