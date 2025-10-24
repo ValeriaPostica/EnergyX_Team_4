@@ -6,9 +6,9 @@ app.use(cors());
 app.use(express.json()); 
 
 let status = {
-  temperature: 22,
+  temperature: 21,
   motion: false,
-  energyUsage: 3.5
+  energyUsage: 4.5
 };
 
 app.get("/api/status", (req, res) => {

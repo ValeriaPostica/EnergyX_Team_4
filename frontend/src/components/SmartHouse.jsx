@@ -6,14 +6,78 @@ function SmartHouse() {
   const [motion, setMotion] = useState(false);
   const [energyUsage, setEnergyUsage] = useState(3.5);
 
-  useEffect(() => {
-    fetch("http://localhost:4000/api/status")
-      .then((res) => res.json())
-      .then((data) => {
-        setTemperature(data.temperature);
-        setMotion(data.motion);
-        setEnergyUsage(Number(data.energyUsage));
+  // initial fetch + simulation will be handled in one effect below
+
+  // helper to POST an updated status object to the server
+  const postStatusObject = async (updated) => {
+    try {
+      await fetch("http://localhost:4000/api/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
       });
+    } catch (e) {
+      console.warn("Failed to POST status", e);
+    }
+  };
+
+  // helper to fetch current status from server and apply to component state
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/status");
+      const data = await res.json();
+      setTemperature(data.temperature);
+      setMotion(data.motion);
+      setEnergyUsage(Number(data.energyUsage));
+      return data;
+    } catch (e) {
+      console.warn("Failed to fetch status", e);
+      return null;
+    }
+  };
+
+  // initial fetch then simulation: smoothly change temperature -> 19, energyUsage -> 5.2, motion -> true over 60s
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      // initial fetch from server to get starting values
+      const initial = await fetchStatus();
+      if (cancelled || !initial) return;
+
+      const startTemp = Number(initial.temperature);
+      const startEnergy = Number(initial.energyUsage);
+      const targetTemp = 19;
+      const targetEnergy = 5.2;
+      const targetMotion = true;
+
+      const durationMs = 60 * 1000;
+      const steps = 60;
+      const intervalMs = Math.floor(durationMs / steps);
+
+      let step = 0;
+      const id = setInterval(async () => {
+        if (cancelled) return;
+        step += 1;
+        const t = Math.min(step / steps, 1);
+        const newTemp = startTemp + (targetTemp - startTemp) * t;
+        const newEnergy = startEnergy + (targetEnergy - startEnergy) * t;
+        const updated = {
+          temperature: Number(newTemp.toFixed(2)),
+          motion: targetMotion,
+          energyUsage: Number(newEnergy.toFixed(2)),
+        };
+
+        await postStatusObject(updated);
+        await fetchStatus();
+
+        if (step >= steps) {
+          clearInterval(id);
+        }
+      }, intervalMs);
+    };
+
+    run();
+    return () => { cancelled = true; };
   }, []);
 
   const updateServer = async (field, value) => {

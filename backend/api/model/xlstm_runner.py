@@ -24,7 +24,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # backend/api/model/
 API_DIR = os.path.dirname(SCRIPT_DIR)                    # backend/api/
 BACKEND_DIR = os.path.dirname(API_DIR)                   # backend/
 MODEL_DATA_DIR = os.path.join(BACKEND_DIR, "data", "model_data")
-MODEL_PATH = os.path.join(MODEL_DATA_DIR, "model.pt")
+MODEL_PATH_OLD = os.path.join(MODEL_DATA_DIR, "model_old.pt")
+MODEL_PATH_NEW = os.path.join(MODEL_DATA_DIR, "model.pt")
 USER_DATA_PATH = os.path.join(MODEL_DATA_DIR, "processed.json")
 LOCAL_DATA_PATH = os.path.join(MODEL_DATA_DIR, "processed_regions.json")
 
@@ -67,60 +68,60 @@ class GlobalLSTMForecaster(nn.Module):
         return self.head(last)
 
 # --------------------------- Forecast ---------------------------
-ckpt = torch.load(MODEL_PATH, map_location="cpu")
-user_data = load_array2d(USER_DATA_PATH)             # [U, T]
-@torch.no_grad()
-def forecast_user(ckpt_path: str, data_path: str, user_idx: int, n: int) -> List[float]:
-    # Load checkpoint & data
-    hyper = ckpt["hyper"]
-    means = ckpt["scalers"]["mean"]
-    stds  = ckpt["scalers"]["std"]
-    lookback = hyper["lookback"]
-    U_saved = hyper["num_users"]
 
-    U, T = user_data.shape
-    if user_idx < 0 or user_idx >= U:
-        raise IndexError(f"user index {user_idx} out of range 0..{U-1}")
-    if U != U_saved:
-        # Not fatal, but warn: embeddings depend on num_users used during training.
-        print(f"[warn] Data users={U} differs from training users={U_saved}. "
-              f"User embeddings index must still be valid.")
+class LSTMForecaster(nn.Module):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2, dropout=0.1):
+        super().__init__()
+        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers,
+                            batch_first=True, dropout=dropout if num_layers > 1 else 0.0)
+        self.head = nn.Linear(hidden_size, 1)
+    def forward(self, x: torch.Tensor):
+        out, _ = self.lstm(x)
+        return self.head(out[:, -1, :])
+
+@torch.no_grad()
+def forecast_user(series: np.ndarray, n: int) -> List[float]:
+    series = np.array(series, dtype=np.float32)
+    ckpt = torch.load(MODEL_PATH_NEW, map_location="cpu")
+    h = ckpt["hyper"]
+    lookback = int(h["lookback"])
+    if not h.get("ctx_norm", False):
+        raise ValueError("Checkpoint not trained with context normalization; retrain with the provided trainer.")
+    if series.shape[0] < lookback:
+        raise ValueError(f"Need at least lookback={lookback} points; got {series.shape[0]}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = GlobalLSTMForecaster(
-        num_users=U_saved,
-        input_size=hyper["input_size"],
-        hidden_size=hyper["hidden_size"],
-        num_layers=hyper["num_layers"],
-        id_embed_dim=hyper["id_embed_dim"],
-        dropout=hyper["dropout"],
+    model = LSTMForecaster(
+        input_size=h["input_size"],
+        hidden_size=h["hidden_size"],
+        num_layers=h["num_layers"],
+        dropout=h["dropout"],
     ).to(device)
-    model.load_state_dict(ckpt["state_dict"], strict=True)
+    model.load_state_dict(ckpt["state_dict"])
     model.eval()
 
-    # Per-user scaler
-    mu = float(means[user_idx])
-    sd = float(stds[user_idx])
-    s = sd if sd > 1e-8 else 1.0
+    eps = 1e-8
+    ctx = series.astype(np.float32).copy()   # work in original units
+    preds: List[float] = []
 
-    series = user_data[user_idx]                    # [T]
-    if T <= lookback:
-        raise ValueError(f"Series length {T} must be > lookback={lookback}")
-    window = ((series[-lookback:] - mu) / s).astype(np.float32)     # [L]
-    window_t = torch.from_numpy(window).unsqueeze(0).unsqueeze(-1).to(device)  # [1,L,1]
-    uid_t = torch.tensor([user_idx], dtype=torch.long, device=device)
-
-    preds_scaled = []
     for _ in range(n):
-        yhat = model(window_t, uid_t).item()   # scalar (scaled)
-        preds_scaled.append(yhat)
-        next_step = torch.tensor([[[yhat]]], dtype=torch.float32, device=device)
-        window_t = torch.cat([window_t[:, 1:, :], next_step], dim=1)
+        window = ctx[-lookback:]
+        mu = float(np.mean(window))
+        sd = float(np.std(window))
+        s = sd if sd > eps else 1.0
 
-    preds = (np.array(preds_scaled, dtype=np.float32) * s + mu).tolist()
+        x_norm = ((window - mu) / s).astype(np.float32)[:, None]   # [L,1]
+        x_t = torch.from_numpy(x_norm).unsqueeze(0).to(device)     # [1,L,1]
+        yhat_norm = model(x_t).item()
+        yhat = yhat_norm * s + mu                                  # back to original units
+
+        preds.append(float(yhat))
+        ctx = np.append(ctx, yhat).astype(np.float32)
+
     return preds
 
 
+ckpt = torch.load(MODEL_PATH_OLD, map_location="cpu")
 local_data = load_array2d(LOCAL_DATA_PATH)             # [R, T] regions x time
 
 @torch.no_grad()
@@ -176,24 +177,20 @@ def forecast_region_series(ckpt_path: str, data_path: str, region_idx: int, n: i
     preds = (np.array(preds_scaled, dtype=np.float32) * s + mu).tolist()
     return preds
 
-
-
-
 # Quick eval of the integer sequence 0..24
-def m_eval(user_index: int, week: bool = False, location: int = -1) -> List[float]:
+def m_eval(series: np.ndarray = [], week: bool = False, location: int = -1) -> List[float]:
     """
     If location == -1: interpret user_index as USER row in processed.json
     If location != -1: interpret user_index as REGION row in processed_regions.json
     """
     horizon = 168 if week else 24
-    if location == -1:
-        print(f"DEBUG: user forecast idx={user_index}, horizon={horizon}")
-        return forecast_user(MODEL_PATH, USER_DATA_PATH, user_index, horizon)
+    if series != []:
+        print(f"DEBUG: user forecast")
+        return forecast_user(series, horizon)
     else:
-        print(f"DEBUG: region forecast idx={user_index}, horizon={horizon}")
-        return forecast_region_series(MODEL_PATH, LOCAL_DATA_PATH, location, horizon)
+        print(f"DEBUG: region forecast")
+        return forecast_region_series(MODEL_PATH_OLD, LOCAL_DATA_PATH, location, horizon)
 
 
 if __name__ == "__main__":
-
-    print("Returned", m_eval(2,week=False, location=0))
+    print("Returned", m_eval(week=True, location=0))

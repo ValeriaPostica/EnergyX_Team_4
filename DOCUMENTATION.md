@@ -55,3 +55,11 @@ Adjust the path above if the backend is mounted at a different base path when de
 
 1. Implemented RAG for customer AI
 2. Improved Provider AI so it gives always 4 answers. It is now faster and corelates with the data on Top Consumers, is no longer random
+3. Model was redone so it now fit with new database. It takes an index, then retrieve the data and print the prediction
+4. Changed package.json, server.json and run.py so it will run also the IoT server which simulate a real life change(for 1 minute)
+5. The data from the start page is no longer hardcoded but computet from db
+
+
+- retrieve_data - general_info() computes current energy usage and number of houses with smart meters.
+- model.pt uses new data
+- model.pt still works with data.json
