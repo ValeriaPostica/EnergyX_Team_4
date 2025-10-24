@@ -23,7 +23,7 @@ const HourlyConsumption = () => {
     Tomorrow: [],
   });
 
-  const hours = Array.from({ length: 25 }, (_, i) => (i < 10 ? `0${i}` : `${i}`));
+  const hours = Array.from({ length: 24 }, (_, i) => (i < 10 ? `0${i}` : `${i}`));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,8 +33,13 @@ const HourlyConsumption = () => {
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/diff/${userId}`);
-        const result = await response.json();
+
+        let yesterday = 6;
+        let today = 7;
+        const y_res = await fetch(`http://localhost:5000/diff/${userId}/${yesterday}`);
+        const t_res = await fetch(`http://localhost:5000/diff/${userId}/${today}`);
+        let y_arr = await y_res.json();
+        let t_arr = await t_res.json();
 
         // Fetch real predictions using the user ID
         let result2;
@@ -48,19 +53,28 @@ const HourlyConsumption = () => {
           // Fallback to random data if prediction fails
           result2 = Array.from({ length: 24 }, () => Math.random() * 50 + 20);
         }
-        
-        const today = result.filter(x =>   
-          ["2025-06-08"].includes(x["Date of Second Val"].split(" ")[0]) && x["Date of Second Val"].endsWith("00:00")
-        )
-        let t_arr = today.map(x => x["Import Delta"])
-        t_arr = t_arr.concat(Array(25 - t_arr.length).fill(t_arr[t_arr.length - 1] + 1));
-        console.log("Fetched consumption todayyyy:", t_arr);
 
-        const yesterday = result.filter(x => 
-          ["2025-06-07"].includes(x["Date of Second Val"].split(" ")[0]) && x["Date of Second Val"].endsWith("00:00")
-        )
-        let y_arr = yesterday.map(x => x["Import Delta"])
-        y_arr = y_arr.concat(Array(25 - y_arr.length).fill(y_arr[y_arr.length - 1] + 1));
+        // Ensure arrays are valid and pad to 24 values if needed
+        if (!Array.isArray(y_arr)) y_arr = [];
+        if (!Array.isArray(t_arr)) t_arr = [];
+        const targetLen = 24;
+        if (y_arr.length === 0) {
+          // no data: fill with zeros
+          y_arr = Array(targetLen).fill(0);
+        } else if (y_arr.length < targetLen) {
+          const last = Number(y_arr[y_arr.length - 1]) || 0;
+          y_arr = y_arr.concat(Array(targetLen - y_arr.length).fill(last + 1));
+        } else if (y_arr.length > targetLen) {
+          y_arr = y_arr.slice(0, targetLen);
+        }
+        if (t_arr.length === 0) {
+          t_arr = Array(targetLen).fill(0);
+        } else if (t_arr.length < targetLen) {
+          const lastT = Number(t_arr[t_arr.length - 1]) || 0;
+          t_arr = t_arr.concat(Array(targetLen - t_arr.length).fill(lastT));
+        } else if (t_arr.length > targetLen) {
+          t_arr = t_arr.slice(0, targetLen);
+        }
 
         console.log("Fetched consumption data:", t_arr, y_arr);
 

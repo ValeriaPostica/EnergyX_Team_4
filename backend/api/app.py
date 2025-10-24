@@ -7,6 +7,7 @@ import aiCustomer
 import os
 import openai
 from model.xlstm_runner import m_eval
+from retrieve_data import get_series, general_info
 # Commented our lines below and above use ai implementations
 from gauss_tarrif import hourly_consumption
 from simple_log_handler import simple_log, simple_log_clear
@@ -79,9 +80,9 @@ with open(METER_TO_LOCATION) as json_file:
 def hello(id):
     return data[str(id)]
 
-@app.route("/diff/<id>")
-def diffs(id):
-    return diff_data.get_diffs(data[str(id)])
+@app.route("/diff/<id>/<day>")
+def diffs(id, day):
+    return get_series(id, day)
 
 @app.route("/")
 @app.route("/keys")
@@ -91,6 +92,11 @@ def keys_route():
 @app.route("/calc")
 def calc():
     return diff_data.calc_consump(data)
+
+@app.route("/general_info")
+def general_info_route():
+    diffs = general_info()
+    return jsonify(diffs)
 
 ## 7->11, 18->22
 
@@ -148,46 +154,11 @@ def chat_q():
 def give_consumption():
     return consumption_data
 
-@app.route("/pred/week")
-def w_pred():
-    return m_eval(user_index=0, week=True)
-
-@app.route("/pred")
-def pred():
-    return m_eval(user_index=0)
-
-
-@app.route("/pred/week/<user_id>")
-def w_pred_user(user_id):
-    try:
-        user_id_int = int(user_id)
-        user_index = get_user_index(user_id_int)
-        return m_eval(user_index=user_index, week=True)
-    except ValueError:
-        return jsonify({"error": "Invalid user ID"}), 400
-
 @app.route("/pred/<user_id>")
 def pred_user(user_id):
+    series = get_series(user_id)
     try:
-        user_id_int = int(user_id)
-        user_index = get_user_index(user_id_int)
-        print(f"DEBUG: pred_user called with user_id={user_id_int}, mapped to user_index={user_index}")
-        return m_eval(user_index=user_index)
-    except ValueError:
-        return jsonify({"error": "Invalid user ID"}), 400
-
-@app.route("/debug/user_mapping/<user_id>")
-def debug_user_mapping(user_id):
-    """Debug route to check user ID to index mapping"""
-    try:
-        user_id_int = int(user_id)
-        user_index = get_user_index(user_id_int)
-        return jsonify({
-            "user_id": user_id_int,
-            "user_index": user_index,
-            "total_users": len(keys),
-            "available_user_ids": keys[:10] if len(keys) > 10 else keys  # Show first 10 or all if less
-        })
+        return m_eval(series=series, week=False)
     except ValueError:
         return jsonify({"error": "Invalid user ID"}), 400
 
@@ -217,7 +188,7 @@ def pred_location(location_name):
             }), 400
         
         # Get predictions using location index
-        predictions = m_eval(user_index=location_index, week=False, location=location_index)
+        predictions = m_eval(series=[], week=False, location=location_index)
         return jsonify(predictions)
         
     except Exception as e:
@@ -248,7 +219,7 @@ def pred_location_week(location_name):
             }), 400
         
         # Get weekly predictions using location index
-        predictions = m_eval(user_index=location_index, week=True, location=location_index)
+        predictions = m_eval(series=[], week=True, location=location_index)
         return jsonify(predictions)
         
     except Exception as e:

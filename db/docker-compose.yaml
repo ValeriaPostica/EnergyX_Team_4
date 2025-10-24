@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_PASSWORD: 11111 #This is the password for postgres user
     ports:
-      - "5432:5432"
+      - "5433:5432"
     command: postgres -c datestyle=ISO,DMY
     volumes:
       - pbl_data:/var/lib/postgresql/data
