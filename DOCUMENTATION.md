@@ -1,65 +1,168 @@
-# Project documentation
+## EnergyX_Team_4
+## This is how i run the project, if you have troubles look further, 
+## If any questions encountered just say :)
+### Also maybe i missed some libraries to add to requirements
 
-## Overview
+## Keys:
+Langchain key = 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
 
-This repository contains a web application that helps explore and predict electricity consumption. The server side is a Python based API that runs model code and serves data. The client side is a modern JavaScript single page app built with React and Vite. Sample data and a trained model are stored in the data folder for local experiments.
+## Run first time
+python3 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r backend/api/requirements.txt
 
-## Architecture
+$env:OPENAI_API_KEY= "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"
 
-1. Backend
+$env:LANGCHAIN_API_KEY= "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"
 
-   The backend is a Flask application located in the api folder under backend. It provides endpoints for inference and for reading processed data. Model runner code sits inside the model subfolder.
+cd frontend
+npm install
+cd ..
+cd db
+docker compose up -d
+cd ..
+python3 run.py
 
-2. Frontend
+## Run
+.venv\Scripts\Activate.ps1
+cd db
+docker compose up -d
+cd ..
+python3 run.py
 
-   The frontend is a React app under frontend. It uses Vite for local development and can be packaged for mobile with Capacitor.
+## Stop
+*Press Ctrl + C
+cd db
+docker compose down
 
-3. Data and model
+# Now shortly the main changes I made
+- Reworked the LSTM model: it now accepts an input array and produces predictions. I kept the old provider function because the database currently lacks location data.
+- User-level predictions now use the database (model saved as `model.pt`). The older provider model remains as `model_old.pt`.
+- `api/retrieve_data.py` contains helpers that retrieve data from the database. `get_series()` returns the hourly series (meter readings or consumption values) for a specific meter ID, and `general_info()` computes current total usage and a simple metric for the number of smart-metered homes.
+- Ignore `db/test.py`, `db/series.py` and `get_day_data.py` — they were created for quick local tests and can be removed if you don't need them.
+- I added IoT server activation in `run.py` for the Smart House page. The page runs a short simulation (about 1 minute) demonstrating how temperature changes affect energy usage.
+- Thus now I am using the new data for costumers and also made Smart House simulation.
 
-   Project sample data and model artifacts live in the data folder under backend. Use those files to reproduce predictions and to test the server locally.
+## Changes made during recent edits(more small and detailed)
+The following files were modified or added while working on the project. This list helps you understand what changed and how to run/verify the edits.
 
-## Quick start
+- backend/api/retrieve_data.py
+	- Updated `diff()` to clamp negative differences to 0.0 (energy usage can't be negative).
+	- Added optional day filtering in some variants used by other scripts.
+- backend/api/retrieve_user_id_data.py
+	- Added and reverted some variants; primary purpose is to fetch whole-hour `energy_import` rows and compute diffs.
+- backend/api/model/xlstm_runner.py
+	- Fixed imports to use package-relative import for `retrieve_user_id_data`.
+- backend/api/retrieve_data.py and backend/api/retrieve_user_id_data.py
+	- Added parameterized SQL queries using SQLAlchemy `text()` to safely query `interpolated.contour_data`.
+- db/series.py and db/test.py
+	- Added helper scripts that fetch hourly `energy_import` rows for a contour id and print/return the series.
+- frontend/src/components/HourlyConsumption.jsx
+	- Fixed a client-side bug: parse fetch response JSON, guard and pad/truncate arrays to 24 values, and adjusted labels to 24 hours.
+- frontend/package.json
+	- Fixed duplicate `dev` script. Added `server` and `server:dev` scripts so the Node server and vite dev server can be run separately.
+- run.py
+	- Improved orchestrator to start both frontend dev (vite) and frontend server (Node) plus the Flask backend and stream their logs.
 
-Follow README
+## Recommended environment & prerequisites
+These are the minimal tools and versions used when running and testing the project locally on Windows (PowerShell):
 
-## API notes
+- Python 3.10+ (used to create and run the virtual environment)
+- Node.js 18+ and npm
+- Docker & Docker Compose (for database container under `db/`)
+- A Python virtual environment (venv) activated before running backend
 
-The backend exposes endpoints that accept JSON and return JSON. The precise endpoint paths and payload shapes are implemented in the api folder. For quick experiments use the app UI or a small fetch request from a browser console.
+Ensure the following are available on PATH: `python`, `pip`, `npm`, `docker` (and `docker compose`).
 
-Example fetch snippet to call a JSON endpoint from the front end or from a small script
+## Detailed Windows PowerShell run instructions (recommended)
+Follow these steps the first time you run the project and to run it during development.
 
-```javascript
-fetch('/api/predict', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ exampleInput: 123 })
-})
-.then(r => r.json())
-.then(result => console.log(result))
+1) Create and activate Python venv (one-time):
+
+```powershell
+cd EnergyX_Team_4
+python -m venv .venv
+. .venv\Scripts\Activate.ps1
 ```
 
-Adjust the path above if the backend is mounted at a different base path when deployed.
+2) Install backend Python deps, frontend deps, and start DB container:
 
-## Development notes
+```powershell
+pip install -r backend/api/requirements.txt
+cd frontend
+npm install
+cd ..
+cd db
+docker compose up -d
+cd ..
+```
 
-1. Use the requirements file in backend\base to recreate the Python environment.
-2. Keep model artifacts under backend\data\model_data when retraining or swapping models.
-3. The frontend uses package.json for scripts and dependencies. Add or update scripts there for CI or packaging tasks.
+3) Start everything with the orchestrator (recommended):
+
+```powershell
+# from repo root with venv active
+python run.py
+```
+
+This will attempt to run:
+- `npm run dev` (vite frontend dev server)
+- `npm run server` (Express Node server at frontend/server.js)
+- `flask run` (the Flask backend from `backend/api`)
+
+4) Alternatively run components separately:
+
+- Frontend vite (hot-reload UI):
+```powershell
+cd frontend
+npm run dev
+```
+- Frontend Node server (API used by some tests or local mock endpoints):
+```powershell
+cd frontend
+npm run server       # production-mode Node server
+npm run server:dev   # nodemon auto-restart on change (requires nodemon installed)
+```
+- Backend (Flask): activate venv and run inside `backend/api` (you can set FLASK_APP explicitly if needed):
+```powershell
+cd backend\api
+$env:FLASK_APP = 'app'
+flask run
+```
+
+Note: `run.py` tries to detect the venv and will use the venv's `flask` executable when available. Using `run.py` avoids manual FLASK_APP handling in many cases.
+
+## Database and connection
+- The project uses a Postgres database schema located under `db/`. Start it with:
+```powershell
+cd db
+docker compose up -d
+```
+- The default connection string used in the repo is `postgresql://postgres:11111@localhost:5433/postgres`. If your DB uses different credentials or port, update the scripts that create engines (e.g. `backend/api/retrieve_data.py`, `backend/api/retrieve_user_id_data.py`, `db/test.py`, `db/series.py`).
+
+## How to inspect table columns (quick)
+Use psql or the included Python helper pattern — from repo root run:
+
+PowerShell + psql:
+```powershell
+psql "postgresql://postgres:11111@localhost:5433/postgres" -c "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema='interpolated' AND table_name='contour_data' ORDER BY ordinal_position;"
+```
+
+Python helper snippet (works inside repo using SQLAlchemy):
+```python
+from sqlalchemy import create_engine, inspect
+engine = create_engine("postgresql://postgres:11111@localhost:5433/postgres")
+insp = inspect(engine)
+cols = insp.get_columns('contour_data', schema='interpolated')
+for c in cols:
+		print(c['name'], c.get('type'))
+```
+
+## Verification & smoke-tests
+- Open browser to Vite dev server URL (usually http://localhost:5173) after `npm run dev`.
+- Check Express server: http://localhost:4000/api/status
+- Check Flask backend endpoints used by frontend, for example `http://localhost:5000/diff/<userId>/<day>` or `http://localhost:5000/pred/<userId>`.
 
 ## Troubleshooting
-
-1. If the backend does not start check that the required Python packages are installed and that the environment variables are set as shown above.
-2. If the frontend dev server fails to start check node version and run npm install again.
-
-## Changes did from the last time
-
-1. Implemented RAG for customer AI
-2. Improved Provider AI so it gives always 4 answers. It is now faster and corelates with the data on Top Consumers, is no longer random
-3. Model was redone so it now fit with new database. It takes an index, then retrieve the data and print the prediction
-4. Changed package.json, server.json and run.py so it will run also the IoT server which simulate a real life change(for 1 minute)
-5. The data from the start page is no longer hardcoded but computet from db
-
-
-- retrieve_data - general_info() computes current energy usage and number of houses with smart meters.
-- model.pt uses new data
-- model.pt still works with data.json
+- If `npm run server` fails, run `npm install` in the `frontend` folder and ensure `nodemon` is installed (dev dependency). Use `npm run server:dev` to run with nodemon.
+- If Flask import errors appear (ModuleNotFoundError), confirm you activated the `.venv` virtual environment and that `backend/api` is in Python path; prefer using `run.py` which handles detection.
+- If DB connection fails, verify Docker container is running and ports match the connection string.
