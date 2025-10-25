@@ -9,7 +9,7 @@ import openai
 from model.xlstm_runner import m_eval
 from retrieve_data import get_series, general_info
 # Commented our lines below and above use ai implementations
-from gauss_tarrif import hourly_consumption
+from gauss_tarrif import precompute_gaussian_peak
 from simple_log_handler import simple_log, simple_log_clear
 import json
 
@@ -93,28 +93,15 @@ def keys_route():
 def calc():
     return diff_data.calc_consump(data)
 
+diffs = general_info()
 @app.route("/general_info")
 def general_info_route():
-    diffs = general_info()
     return jsonify(diffs)
 
-## 7->11, 18->22
-
-@app.route("/tariff/<hour>/<previousCost>")
-def tariff(hour, previousCost):
-    print(hour, type(hour))
-    try:
-        hour = int(hour)
-        previousCost = int(previousCost)
-        if hour < 0 or hour > 24:
-            return jsonify({"error": "Hour must be between 0 and 24"}), 400
-    except Exception:
-        return jsonify({"error": "Hour must be a valid integer"}), 400
-
-    # Make sure hourly_consumption is defined and accessible
-    consumption = round(hourly_consumption(hour) * previousCost * 0.15 + previousCost * 0.85, 2)
-    return jsonify({"price": consumption})
-
+values = precompute_gaussian_peak()
+@app.route("/tariff")
+def tariff():
+    return jsonify(values)
 
 @app.route("/color", methods=['POST'])
 def give_color() :
@@ -131,13 +118,10 @@ def give_color() :
 def get_regions():
     return calc_data
 
+response = aiProvider.get_ai_recommendations(client, consumption_data)
 @app.route("/ai")
 def get_ai_resp():
-
-    if client is None:
-        return jsonify({"error": "OpenAI client not initialized"}), 500
-
-    return aiProvider.get_ai_recommendations(client, consumption_data)
+    return response
 
 @app.route("/ai/chat", methods=['POST'])
 def chat_q():

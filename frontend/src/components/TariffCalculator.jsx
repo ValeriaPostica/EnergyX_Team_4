@@ -35,40 +35,66 @@ function TariffCalculator() {
 
   // Fetch current cost from backend
   useEffect(() => {
-    const fetchTariff = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`http://localhost:5000/tariff/${hour}/${previousCost}`);
-        const result = await response.json();
-        if (result && typeof result.price === "number") {
-          setCurrentCost(result.price);
-        } else {
-          setCurrentCost(null);
-        }
-      } catch (err) {
-        console.error("Error fetching tariff:", err);
-        setCurrentCost(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Debounce the fetch so quick slider moves don't trigger many requests.
+    // Also use AbortController to cancel an in-flight request when hour changes.
+    const controller = new AbortController();
+    const debounceMs = 200; // tweak for responsiveness vs requests
 
-    fetchTariff();
+    const id = setTimeout(() => {
+      const fetchTariff = async () => {
+        setLoading(true);
+        try {
+          const resp = await fetch(`http://localhost:5000/tariff`, { signal: controller.signal });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const json = await resp.json();
+          // Compute estimated cost using the returned distribution value for the selected hour
+          const computed = Math.round(json[hour] * previousCost * 0.15 + previousCost * 0.85);
+          setCurrentCost(computed);
+        } catch (err) {
+          if (err.name === "AbortError") {
+            // Request was aborted because user changed the hour quickly; ignore
+            console.log("Tariff fetch aborted");
+            return;
+          }
+          console.error("Error fetching tariff:", err);
+          setCurrentCost(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchTariff();
+    }, debounceMs);
+
+    return () => {
+      clearTimeout(id);
+      controller.abort();
+    };
   }, [hour]);
 
 
-          (async () => {
+  // Send a simple log each time the computed cost updates (debounced fetch sets currentCost)
+  useEffect(() => {
+    if (currentCost === null) return;
+
+    let mounted = true;
+    (async () => {
       try {
         await fetch("http://localhost:5000/simple_log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ line: `2)The previous cost of the tariff the user was charged is: ${previousCost} MDL; The current estimated cost is: ${currentCost} MDL` }),
         });
-        console.log("Sent simple_log");
+        if (mounted) console.log("Sent simple_log");
       } catch (err) {
         console.warn("Failed to send simple_log", err);
       }
     })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentCost]);
   // Chart data
   const labels = Array.from({ length: 25 }, (_, i) =>
     i.toString().padStart(2, "0")

@@ -18,3 +18,4 @@ langchain_core
 langchain_text_splitters 
 langgraph
 bs4
+psycopg2

@@ -6,7 +6,7 @@ from typing import Optional
 engine = create_engine("postgresql://postgres:11111@localhost:5433/postgres")
 
 
-def fetch_hourly_imports(contour_id: int, day: Optional[int] = None, schema: Optional[str] = "interpolated"):
+def fetch_hourly_imports(contour_id: int, day: Optional[int] = None, schema: Optional[str] = ""):
     """Return rows (contour_id, clock, energy_import) for the given contour_id
     where the timestamp is at whole hours (minute = 0). Results are ordered by clock ascending.
     """
@@ -60,10 +60,10 @@ def get_series(cid: int, day: Optional[int] = None) -> list[float]:
     diffs = diff(series)
     return diffs
 
-def general_info(schema: Optional[str] = "interpolated"):
+def general_info(schema: Optional[str] = ""):
     table = f"{schema}.contour_data" if schema else "contour_data"
     sql = text(
-        f"SELECT energy_import FROM {table} LIMIT 841"
+        f"SELECT energy_import FROM {table}"
     )
     with engine.connect() as conn:
         result = conn.execute(sql).fetchall()
@@ -81,7 +81,7 @@ def general_info(schema: Optional[str] = "interpolated"):
         number_of_contours = conn.execute(sql).scalar()
     # ensure we return a plain int (or 0 if None)
 
-    return current_usage, int(number_of_contours*5)
+    return current_usage, int(number_of_contours)
 
 if __name__ == '__main__':
     print(general_info())
