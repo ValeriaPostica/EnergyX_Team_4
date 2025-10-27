@@ -9,7 +9,8 @@ services:
     command: postgres -c datestyle=ISO,DMY
     volumes:
       - pbl_data:/var/lib/postgresql/data
+      # Mount initialization SQL to be run on container first start
+      - ./data.sql:/docker-entrypoint-initdb.d/01-init.sql
 volumes:
   pbl_data:
-      
 

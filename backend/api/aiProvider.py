@@ -92,8 +92,6 @@ def get_ai_recommendations(client, energy_data: dict, model: str = "gpt-4o-mini"
 	Title: Cahul
 	Description: Implement demand response programs to reduce consumption during critical periods.
 	"""
-
-	print(summary)
 	# Try parsing JSON first
 	text = response.choices[0].message.content.strip()
 	try:

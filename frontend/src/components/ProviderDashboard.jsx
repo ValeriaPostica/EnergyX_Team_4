@@ -51,22 +51,50 @@ const ProviderDashboard = ({ setCurrentPage }) => {
       try {
         const response = await fetch(`http://localhost:5000/region/all`);
         const result = await response.json();
+        console.log("Response status:", result);
         console.log(result)
 
         // Extract data for the selected region
         const regionData = result[0][region] || {};
         console.log(regionData)
 
-        // Convert object with timestamps to array of Export values
-        const dataArray = Object.entries(regionData)
-          // Optional: filter to full hours (MM:SS = "00:00")
-          .filter(([timestamp]) => timestamp.slice(14, 19) === "00:00")
-          .map(([timestamp, values]) => ({
-            timestamp,
-            export: values.Export,
-            import: values.Import,
-          }));
-        console.log(dataArray)
+        // Convert object with timestamps to array of values and keep only full hours
+        const allEntries = Object.entries(regionData || {})
+          .map(([timestamp, values]) => ({ timestamp, export: values?.Export, import: values?.Import }))
+          // keep only full hours (MM:SS === "00:00")
+          .filter(({ timestamp }) => {
+            try {
+              return timestamp.slice(14, 19) === "00:00";
+            } catch (error) {
+              return false;
+            }
+          });
+
+        // Sort by timestamp ascending to be safe
+        allEntries.sort((a, b) => {
+          try {
+            // convert to ISO-like string to avoid inconsistent parsing
+            const ta = new Date(a.timestamp.replace(" ", "T"));
+            const tb = new Date(b.timestamp.replace(" ", "T"));
+            return ta - tb;
+          } catch {
+            return 0;
+          }
+        });
+
+        // Keep only entries from the specific date 2025-06-07
+        // (only full-hour timestamps were kept previously)
+        const TARGET_DATE = "2025-06-07";
+        const dataArray = allEntries.filter(({ timestamp }) => {
+          try {
+            // timestamp format: "YYYY-MM-DD HH:MM:SS"
+            return timestamp.slice(0, 10) === TARGET_DATE;
+          } catch {
+            return false;
+          }
+        });
+
+        console.log(dataArray);
         setConsumptionData(dataArray);
       } catch (error) {
         console.error("Error fetching region data:", error);
