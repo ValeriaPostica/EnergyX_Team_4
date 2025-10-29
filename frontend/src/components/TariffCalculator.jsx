@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import "./TariffCalculator.css";
 import {
-  Chart as ChartJS,
+  Chart as ChartJS, 
   CategoryScale,
   LinearScale,
   PointElement,
@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useRef, useCallback } from "react";
 
 ChartJS.register(
   CategoryScale,
@@ -31,7 +32,22 @@ function TariffCalculator() {
   const [currentCost, setCurrentCost] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [isDragging, setIsDragging] = useState(false);
+  const sliderRef = useRef(null);
+  const animationFrameRef = useRef(null);
+
   const previousCost = 1200;
+
+  const updateHour = useCallback((newHour) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    animationFrameRef.current = requestAnimationFrame(() => {
+      setHour(Math.min(24, Math.max(0, newHour)));
+    });
+  }, []);
+
 
   // Fetch current cost from backend
   useEffect(() => {
@@ -95,6 +111,77 @@ function TariffCalculator() {
       mounted = false;
     };
   }, [currentCost]);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    const handleMouseDown = (e) => {
+      setIsDragging(true);
+      updateHourFromEvent(e);
+    };
+
+    const handleMouseMove = (e) => {
+      if (!isDragging) return;
+      updateHourFromEvent(e);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    const handleTouchStart = (e) => {
+      setIsDragging(true);
+      updateHourFromEvent(e.touches[0]);
+      e.preventDefault();
+    };
+
+    const handleTouchMove = (e) => {
+      if (!isDragging) return;
+      updateHourFromEvent(e.touches[0]);
+      e.preventDefault();
+    };
+
+    const handleTouchEnd = () => {
+      setIsDragging(false);
+    };
+
+    const updateHourFromEvent = (event) => {
+      const rect = slider.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const percentage = x / rect.width;
+      const newHour = Math.round(percentage * 24);
+      updateHour(newHour);
+    };
+
+    // Event listeners
+    slider.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    slider.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      // Cleanup
+      slider.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      slider.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isDragging, updateHour]);
+
+  const handleInputChange = (e) => {
+  const newHour = Number(e.target.value);
+    updateHour(newHour);
+  };
+
   // Chart data
   const labels = Array.from({ length: 25 }, (_, i) =>
     i.toString().padStart(2, "0")
@@ -156,12 +243,14 @@ function TariffCalculator() {
           Select peak hour: {hour}:00
         </label>
         <input
+          ref={sliderRef}
           id="hourRange"
           type="range"
           min="0"
           max="24"
           value={hour}
-          onChange={(e) => setHour(Number(e.target.value))}
+          onChange={handleInputChange}
+          className="smooth-slider" 
         />
       </div>
 
