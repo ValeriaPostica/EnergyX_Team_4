@@ -45,11 +45,11 @@ const Footer = () => {
           <div className="footer-top">
             <div className="footer-brand">
               <h4 className="fw-bold">EnergiX</h4>
-              <p>Smart actions for a sustainable future.</p>
+              <p style ={{width: "200px"}}>Smart actions for a sustainable future.</p>
             </div>
 
             <div className="footer-contacts">
-              <h5>Contacts</h5>
+              <h5 style ={{padding: "0 0 0 0.5rem"}}>Contacts</h5>
               <p><i className="fas fa-envelope me-2"></i> contact@energix.md</p>
               <p><i className="fas fa-phone me-2"></i> +373 22 123 456</p>
             </div>
