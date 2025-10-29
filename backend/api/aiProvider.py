@@ -11,7 +11,6 @@ Each recommendation is one clear, actionable sentence.
 import openai
 import os
 import sys
-from diff_data import get_timed_diffs
 import json
 
 

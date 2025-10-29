@@ -1,7 +1,6 @@
 from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
-import diff_data
 import aiProvider
 import aiCustomer
 import os
@@ -28,10 +27,6 @@ except Exception as e:
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
-CALC_DATA_JSON = os.path.join(DATA_DIR, "calc.json")
-METER_TO_LOCATION = os.path.join(DATA_DIR, "daniel_data", "meter_to_location.json")
-TOTAL_CONSUMPTION_JSON = os.path.join(DATA_DIR, "daniel_data", "location_total_consumption.json")
-
 app = Flask(__name__)
 CORS(app)
 
@@ -51,13 +46,6 @@ def _series_digest(values):
     except Exception:
         return "na"
 
-data = {}
-# Opening JSON file
-with open(diff_data.DATA_JSON_FILE) as json_file:
-    data:dict = json.load(json_file)
-
-keys = list(data.keys())
-
 # Path to a simple plain-text log file. We'll truncate it at startup so it's empty when app runs.
 SIMPLE_LOG_PATH = os.path.join(DATA_DIR, "simple_log.txt")
 try:
@@ -67,31 +55,6 @@ try:
 except Exception as e:
     print(f"Warning: could not create/truncate simple_log: {e}")
 
-# zCreate a mapping from user ID to index position
-def get_user_index(user_id):
-    """
-    Convert user ID to its index position in the data.json keys list.
-    Returns the index if found, otherwise returns 0 as default.
-    """
-    user_id_str = str(user_id)
-    if user_id_str in keys:
-        return keys.index(user_id_str)
-    else:
-        print(f"Warning: User ID {user_id} not found in data. Using index 0 as default.")
-        return 0
-
-calc_data = {}
-with open(CALC_DATA_JSON) as json_file:
-    calc_data:dict = json.load(json_file)
-
-meter_data = {}
-with open(METER_TO_LOCATION) as json_file:
-    meter_data:dict = json.load(json_file)
-
-@app.route("/id/<id>")
-def hello(id):
-    return data[str(id)]
-
 @app.route("/diff/<id>/<day>")
 def diffs(id, day):
     return get_series(id, day)
@@ -100,10 +63,6 @@ def diffs(id, day):
 @app.route("/keys")
 def keys_route():
     return keys
-
-@app.route("/calc")
-def calc():
-    return diff_data.calc_consump(data)
 
 diffs = general_info()
 @app.route("/general_info")
@@ -220,17 +179,6 @@ def pred_location_week(location_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/locations")
-def get_locations():
-    """Get list of available locations"""
-    try:
-        regions_index_path = os.path.join(BASE_DIR, "data", "model_data", "regions_index.json")
-        with open(regions_index_path, "r", encoding="utf-8") as f:
-            regions_data = json.load(f)
-        return jsonify(regions_data["regions"])
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 location_data = regional_consumption()
 @app.route("/consumption")
 def get_location_consumption():
@@ -258,8 +206,6 @@ def give_color():
         return jsonify({"error": str(e)}), 500
 
     
-    
-
 response = aiProvider.get_ai_recommendations(client, location_data)
 @app.route("/ai")
 def get_ai_resp():
