@@ -12,8 +12,11 @@ from retrieve_data import get_series, general_info
 from gauss_tarrif import hourly_consumption
 from simple_log_handler import simple_log, simple_log_clear
 import json
+from dotenv import load_dotenv
+load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 client = None
 
