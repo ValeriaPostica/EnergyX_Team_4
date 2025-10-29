@@ -53,3 +53,15 @@ npm i
 ```bash
 npm run dev
 ```
+
+#### To restore database data
+```bash
+docker compose up -d
+docker cp data.sql postgres_db:/
+docker exec -it postgres_db psql -U postgres -f /data.sql 
+```
+
+#### To delete all database data
+```bash
+docker compose down --volumes
+```

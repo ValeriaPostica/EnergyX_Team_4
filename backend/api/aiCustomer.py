@@ -20,10 +20,13 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 import getpass
 import os
-os.environ["LANGCHAIN_API_KEY"] = "lagnchain_api_key_placeholder"
+from dotenv import load_dotenv
+
+load_dotenv()
+
 os.environ["LANGCHAIN_TRACING"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_PROJECT"] = "pr-indelible-anywhere-47"
+os.environ["LANGCHAIN_PROJECT"] = "pr-frosty-stair-51"
 llm = None
 try:
 	llm = init_chat_model("gpt-4o-mini", model_provider="openai")

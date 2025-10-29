@@ -1,7 +1,6 @@
 from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
-import diff_data
 import aiProvider
 import aiCustomer
 import os
@@ -16,6 +15,7 @@ import hashlib
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+
 client = None
 
 try:
@@ -26,10 +26,6 @@ except Exception as e:
 # Use relative paths for local development
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
-
-CALC_DATA_JSON = os.path.join(DATA_DIR, "calc.json")
-METER_TO_LOCATION = os.path.join(DATA_DIR, "daniel_data", "meter_to_location.json")
-TOTAL_CONSUMPTION_JSON = os.path.join(DATA_DIR, "daniel_data", "location_total_consumption.json")
 
 app = Flask(__name__)
 CORS(app)
@@ -55,7 +51,16 @@ data = {}
 with open(diff_data.DATA_JSON_FILE) as json_file:
     data:dict = json.load(json_file)
 
-keys = list(data.keys())
+def _cache_key(*parts):
+    return ":".join(str(p) for p in parts)
+
+def _series_digest(values):
+    try:
+        # Stable digest to debug if inputs change between requests
+        b = (",".join(f"{float(v):.6f}" for v in values)).encode("utf-8")
+        return hashlib.sha1(b).hexdigest()  # nosec - debugging only
+    except Exception:
+        return "na"
 
 # Path to a simple plain-text log file. We'll truncate it at startup so it's empty when app runs.
 SIMPLE_LOG_PATH = os.path.join(DATA_DIR, "simple_log.txt")
@@ -219,16 +224,27 @@ def pred_location_week(location_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/locations")
-def get_locations():
-    """Get list of available locations"""
+location_data = regional_consumption()
+@app.route("/consumption")
+def get_location_consumption():
+    #Get consumption data for a specific location
     try:
-        regions_index_path = os.path.join(BASE_DIR, "data", "model_data", "regions_index.json")
-        with open(regions_index_path, "r", encoding="utf-8") as f:
-            regions_data = json.load(f)
-        return jsonify(regions_data["regions"])
+        return jsonify(location_data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/color", methods=['POST'])
+def give_color():
+    try:
+        # Parse posted JSON (optional); not required for current implementation.
+        req_data = request.get_json(silent=True) or {}
+        print("Received request data:", req_data)
+
+        if not isinstance(location_data, dict) or not location_data:
+            print("Error: Invalid or empty location_data")
+            return jsonify({"error": "No location data available"}), 500
+
+        return jsonify(get_location_color(location_data))
 
 location_data = regional_consumption()
 @app.route("/consumption")
