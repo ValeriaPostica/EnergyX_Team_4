@@ -16,6 +16,7 @@ import hashlib
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+
 client = None
 
 try:
