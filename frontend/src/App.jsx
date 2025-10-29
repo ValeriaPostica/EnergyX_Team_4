@@ -65,6 +65,7 @@ function App() {
     }
   };
 
+
   return (
     <div>
       {currentPage !== 'auth' && (
@@ -87,3 +88,4 @@ function App() {
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(<App />);
+

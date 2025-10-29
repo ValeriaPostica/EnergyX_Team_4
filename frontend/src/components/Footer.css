@@ -10,6 +10,13 @@
   margin-top: 20px;
   box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.15);
   font-size: 0.65rem;
+
+  position: fixed;
+  bottom: -100px;
+  left: 0;
+  right: 0;
+  transition: bottom 0.3s ease-in-out;
+  z-index: 1000;
 }
 
 .footer-top {
@@ -17,7 +24,7 @@
   justify-content: space-between;
   align-items: center;  
   flex-wrap: nowrap;
-  gap: 1rem;        
+  gap: 48rem;        
   line-height: 1.2;  
 }
 
