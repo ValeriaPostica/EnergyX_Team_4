@@ -33,8 +33,8 @@ const PredictionsPage = () => {
         const locationName = city.replace(/ă/g, 'a').replace(/î/g, 'i').replace(/ș/g, 's').replace(/ț/g, 't');
         
         const endpoint = timeRange === "24h" 
-          ? `http://localhost:5000/pred/location/${locationName}`
-          : `http://localhost:5000/pred/location/${locationName}/week`;
+          ? `http://localhost:5000/pred/loc/${locationName}`
+          : `http://localhost:5000/pred/loc/${locationName}/week`;
         
         console.log(`Fetching predictions for ${city} (${locationName}) from: ${endpoint}`);
         const response = await fetch(endpoint);
@@ -198,9 +198,9 @@ const PredictionsPage = () => {
         </div>
       </div>
 
-      {/* Stats Cards - Compact */}
+      {/* Stats Cards - Compact (Trend removed) */}
       <div className="row">
-        <div className="col-md-4 mb-2">
+        <div className="col-md-6 mb-2">
           <div className="card border-info h-100">
             <div className="card-body p-3 text-center">
               <h6 className="card-title text-info mb-1">Accuracy</h6>
@@ -209,21 +209,14 @@ const PredictionsPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-md-4 mb-2">
-          <div className="card border-success h-100">
-            <div className="card-body p-3 text-center">
-              <h6 className="card-title text-success mb-1">Trend</h6>
-              <h4 className="text-success mb-1">+2.1%</h4>
-              <small className="text-muted">vs last period</small>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4 mb-2">
+        <div className="col-md-6 mb-2">
           <div className="card border-warning h-100">
             <div className="card-body p-3 text-center">
               <h6 className="card-title text-warning mb-1">Peak</h6>
               <h4 className="text-warning mb-1">
-                {predictionData.length > 0 ? Math.max(...predictionData).toFixed(1) : '0'} MW
+                {predictionData.length > 0 
+  ? (Math.max(...predictionData) / 1000).toFixed(2) 
+  : '0'} MW
               </h4>
               <small className="text-muted">Maximum consumption</small>
             </div>

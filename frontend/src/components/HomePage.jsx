@@ -35,6 +35,8 @@ function HomePage({ openMenu }) {
           if (Array.isArray(data)) {
             // Expecting [currentUsage, smartHouses]
             [usageVal, housesVal] = data;
+            usageVal /= 1000000;
+            usageVal = Math.round(usageVal);
           } else if (data && typeof data === "object") {
             // Handles camelCase or snake_case keys
             usageVal =
