@@ -24,9 +24,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+os.environ["LANGCHAIN_API_KEY"] = "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"
 os.environ["LANGCHAIN_TRACING"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_PROJECT"] = "pr-indelible-anywhere-47"
+os.environ["LANGCHAIN_PROJECT"] = "pr-frosty-stair-51"
+os.environ["OPENAI_API_KEY"] = "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"
 llm = None
 try:
 	llm = init_chat_model("gpt-4o-mini", model_provider="openai")
