@@ -7,7 +7,7 @@ import aiCustomer
 import os
 import openai
 from model.xlstm_runner import m_eval
-from retrieve_data import get_location_color, get_series, general_info, regional_consumption, calc_timeseries_from_db, get_series_country
+from retrieve_data import get_location_color, get_series, general_info, regional_consumption, calc_timeseries_from_db, get_series_country, get_all_keys
 # Commented our lines below and above use ai implementations
 from gauss_tarrif import precompute_gaussian_peak
 from simple_log_handler import simple_log, simple_log_clear
@@ -65,7 +65,7 @@ def diffs(id, day):
 @app.route("/")
 @app.route("/keys")
 def keys_route():
-    return keys
+    return get_all_keys()
 
 diffs = general_info()
 @app.route("/general_info")
