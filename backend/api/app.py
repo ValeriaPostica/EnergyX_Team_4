@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
+from auth import auth_bp
 import aiProvider
 import aiCustomer
 import os
@@ -38,6 +39,8 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 
 app = Flask(__name__)
 CORS(app)
+
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Optional prediction caching to keep outputs consistent across repeated calls
 # even if the underlying time series updates in the database.
