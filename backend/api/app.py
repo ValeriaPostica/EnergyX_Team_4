@@ -11,12 +11,12 @@ from retrieve_data import get_location_color, get_series, general_info, regional
 from gauss_tarrif import precompute_gaussian_peak
 from simple_log_handler import simple_log, simple_log_clear
 import json
-<<<<<<< HEAD
+
 import hashlib
-=======
+
 from dotenv import load_dotenv
 load_dotenv()
->>>>>>> origin/dotenv
+
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
