@@ -11,7 +11,7 @@ from retrieve_data import get_location_color, get_series, general_info, regional
 from gauss_tarrif import precompute_gaussian_peak
 from simple_log_handler import simple_log, simple_log_clear
 import json
-
+from migrations import load_migrations
 import hashlib
 
 from dotenv import load_dotenv
@@ -20,6 +20,10 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+IS_PROD=os.getenv("IS_PROD").lower() == "true"
+
+if IS_PROD:
+    load_migrations()
 
 client = None
 
