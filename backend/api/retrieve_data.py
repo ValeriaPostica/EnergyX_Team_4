@@ -5,6 +5,7 @@ from typing import Optional
 # Usage: python series.py <contour_id>
 engine = create_engine("postgresql://postgres:11111@localhost:5433/postgres")
 
+
 def get_all_keys():
     sql = text("SELECT contour_id FROM interpolated.contour ORDER BY contour_id ASC")
     with engine.connect() as conn:
@@ -13,7 +14,7 @@ def get_all_keys():
     result = [r[0] for r in result]
     return list(result)
 
-def fetch_hourly_imports(contour_id: int, day: Optional[int] = None, schema: Optional[str] = ""):
+def fetch_hourly_imports(contour_id: int, day: Optional[int] = None, schema: Optional[str] = "interpolated"):
     """Return rows (contour_id, clock, energy_import) for the given contour_id
     where the timestamp is at whole hours (minute = 0). Results are ordered by clock ascending.
     """
@@ -66,7 +67,7 @@ def get_series(cid: int, day: Optional[int] = None) -> list[float]:
     diffs = diff(series)
     return diffs
 
-def general_info(schema: Optional[str] = ""):
+def general_info(schema: Optional[str] = "interpolated"):
     table = f"{schema}.contour_data" if schema else "contour_data"
     sql = text(
         f"SELECT energy_import FROM {table}"
