@@ -14,6 +14,8 @@ from simple_log_handler import simple_log, simple_log_clear
 import json
 import hashlib
 
+from auth import auth_bp
+
 from dotenv import load_dotenv
 load_dotenv()
 
