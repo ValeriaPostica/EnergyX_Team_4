@@ -7,6 +7,7 @@ import aiCustomer
 import os
 import openai
 from model.xlstm_runner import m_eval
+from leaderBoard import smart_house_calculator, update_user_points
 from retrieve_data import get_location_color, get_series, general_info, regional_consumption, calc_timeseries_from_db, get_series_country, get_all_keys
 # Commented our lines below and above use ai implementations
 from gauss_tarrif import precompute_gaussian_peak
@@ -274,28 +275,25 @@ def route_tariff_points():
 def route_smart_house_points():
     data = request.get_json()
     user = data.get("user")
-    print("Received data:", data)
-    print("Extracted user:", user)
     energy_usage = float(data.get("energy_usage", 0))
-    thermostat = bool(data.get("thermostat", False))
-    air_conditioner = bool(data.get("air_conditioner", False))
-    lights = bool(data.get("lights", False))
+    temperature = float(data.get("temperature", 0))
+    motion = bool(data.get("motion", False))
     energy_saving_mode = bool(data.get("energy_saving_mode", False))
 
     earned = calculate_smart_house_points(
-        energy_usage,
-        thermostat,
-        air_conditioner,
-        lights,
-        energy_saving_mode,
+        user, energy_usage, temperature, motion, energy_saving_mode
     )
     total = update_user_points(user, earned)
+    
+    points_text = "point" if abs(earned) == 1 else "points"
+    action = "earned" if earned >= 0 else "lost"
+    
     return jsonify({
         "user": user,
         "earned_points": earned,
-        "total_points": total
+        "total_points": total,
+        "message": f"You {action} {abs(earned)} {points_text}! Total: {total} points"
     })
-
 
 @app.route("/leaderboard", methods=["GET"])
 def route_leaderboard():
