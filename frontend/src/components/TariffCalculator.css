@@ -58,6 +58,13 @@
   font-weight: bold;
 }
 
+.points-message {
+  color: #007f00; /* green for success */
+  font-weight: bold;
+  font-size: 18px;
+  margin-top: 16px;
+}
+
 @media (max-width: 768px) {
   .tariff-container {
     padding: 16px;
