@@ -1,20 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Leaderboard.css";
 import { fetchWithAuth } from '../utils/api'; //USE `fetchWithAuth` INSTEAD OF `fetch` - for token
 
 function Leaderboard() {
-  const currentUser = "Ioana Vasilescu"; 
+  const currentUser = "Ioana Vasilescu";
+  const [users, setUsers] = useState([]);
 
-  const users = [
-    { name: "Maria Ionescu", points: 150 },
-    { name: "Ion Georgescu", points: 140 },
-    { name: "Ioana Vasilescu", points: 135 }, 
-    { name: "Elena Radu", points: 120 },
-    { name: "Gabriel Marinescu", points: 115 },
-    { name: "Ana Dumitrescu", points: 100 },
-    { name: "Vlad Mihăilescu", points: 95 },
-    { name: "Cristina Dobre", points: 90 },
-  ];
+  useEffect(() => {
+    fetch("http://localhost:5000/leaderboard")
+      .then((res) => res.json())
+      .then((data) => {
+        setUsers(data.leaderboard); // matches backend response shape
+      })
+      .catch((err) => console.error("Failed to load leaderboard:", err));
+  }, []);
 
   const getMedal = (rank) => {
     if (rank === 1) return "🥇";
@@ -39,7 +38,7 @@ function Leaderboard() {
             }`}
           >
             <span className="rank">{getMedal(i + 1)}</span>
-            <span className="name">{u.name}</span>
+            <span className="name">{u.user}</span>
             <span className="points">{u.points} ⚡︎</span>
           </li>
         ))}
