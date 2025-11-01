@@ -33,7 +33,7 @@ function TariffCalculator() {
   const [loading, setLoading] = useState(false);
 
   const previousCost = 1200;
-
+  const [pointsMessage, setPointsMessage] = useState("");
   // Fetch current cost from backend
   useEffect(() => {
     // Debounce the fetch so quick slider moves don't trigger many requests.
@@ -75,20 +75,28 @@ function TariffCalculator() {
 
 
   // Send a simple log each time the computed cost updates (debounced fetch sets currentCost)
-  useEffect(() => {
+useEffect(() => {
     if (currentCost === null) return;
 
     let mounted = true;
     (async () => {
       try {
-        await fetchWithAuth("http://localhost:5000/simple_log", {
+        const response = await fetch("http://localhost:5000/calculate/tariff_points", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ line: `2)The previous cost of the tariff the user was charged is: ${previousCost} MDL; The current estimated cost is: ${currentCost} MDL` }),
+          body: JSON.stringify({
+            user: "Ioana Vasilescu", // 🔧 You can make this dynamic later
+            previous_cost: previousCost,
+            estimated_cost: currentCost
+          }),
         });
-        if (mounted) console.log("Sent simple_log");
+
+        const data = await response.json();
+        if (mounted) {
+          setPointsMessage(`You earned ${data.earned_points} points! Total: ${data.total_points} points`);
+        }
       } catch (err) {
-        console.warn("Failed to send simple_log", err);
+        console.warn("Failed to update leaderboard", err);
       }
     })();
 
@@ -179,6 +187,14 @@ function TariffCalculator() {
             : "Error fetching"}
         </p>
       </div>
+
+      {/* Feedback message for earned points */}
+      {pointsMessage && (
+        <div className="points-box">
+          <p className="points-message">{pointsMessage}</p>
+        </div>
+      )}
+
 
       <div className="description-box">
         <h4>How to read this chart</h4>
