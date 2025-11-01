@@ -53,13 +53,13 @@ def calculate_smart_house_points(
 
 # Leaderboard functions
 
-def update_user_points(user_name: str, points: int):
+def update_user_points(user: str, points: int):
     """Update the points for a given user."""
-    if user_name in leaderboard:
-        leaderboard[user_name] += points
+    if user in leaderboard:
+        leaderboard[user] += points
     else:
-        leaderboard[user_name] = 0
-    return leaderboard[user_name]
+        leaderboard[user] = 0
+    return leaderboard[user]
 
 def get_leaderboard():
     """Return the leaderboard sorted by points in descending order."""
