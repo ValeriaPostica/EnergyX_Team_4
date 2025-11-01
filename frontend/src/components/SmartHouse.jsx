@@ -6,9 +6,16 @@ function SmartHouse() {
   const [temperature, setTemperature] = useState(22);
   const [motion, setMotion] = useState(false);
   const [energyUsage, setEnergyUsage] = useState(3.5);
+  const [prevEnergyUsage, setPrevEnergyUsage] = useState(3.5); // FIXED: missing declaration
+  const [userName] = useState("Ioana Vasilescu"); 
+  const [pointsMessage, setPointsMessage] = useState("");
 
-  // initial fetch + simulation will be handled in one effect below
+  // ADDED: Manual toggles for AC and Lights
+  const [air_conditioner, setAcOn] = useState(false);
+  const [lights, setLightsOn] = useState(false);
 
+
+  const [prevThermostat, setPrevThermostat] = useState(temperature < 20 );
   // helper to POST an updated status object to the server
   const postStatusObject = async (updated) => {
     try {
@@ -37,11 +44,9 @@ function SmartHouse() {
     }
   };
 
-  // initial fetch then simulation: smoothly change temperature -> 19, energyUsage -> 5.2, motion -> true over 60s
-  useEffect(() => {
+  /*useEffect(() => {
     let cancelled = false;
     const run = async () => {
-      // initial fetch from server to get starting values
       const initial = await fetchStatus();
       if (cancelled || !initial) return;
 
@@ -79,7 +84,7 @@ function SmartHouse() {
 
     run();
     return () => { cancelled = true; };
-  }, []);
+  }, []); */
 
   const updateServer = async (field, value) => {
     const updated = {
@@ -88,6 +93,18 @@ function SmartHouse() {
       energyUsage,
       [field]: value,
     };
+
+    if (field === "energyUsage") {
+      setPrevEnergyUsage(energyUsage); // Track previous usage
+    }
+
+    if (field === "temperature") {
+      const newThermostat = value < 20;
+      if (newThermostat !== prevThermostat) {
+        setPrevThermostat(newThermostat);
+      }
+    }
+
     setTemperature(updated.temperature);
     setMotion(updated.motion);
     setEnergyUsage(updated.energyUsage);
@@ -97,25 +114,39 @@ function SmartHouse() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated),
     });
+
+    const payload = {
+      user: userName,
+      energy_usage: updated.energyUsage,
+      previous_energy_usage: prevEnergyUsage,
+      thermostat: updated.temperature < 20,
+      air_conditioner,
+      lights,
+      energy_saving_mode: updated.energyUsage > 5,
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/calculate/smart_house_points", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.earned_points !== 0) {
+        const earnedLabel = Math.abs(data.earned_points) === 1 ? "point" : "points";
+        const totalLabel = data.total_points === 1 ? "point" : "points";
+        const verb = data.earned_points < 0 ? "lost" : "earned";
+        setPointsMessage(`You ${verb} ${Math.abs(data.earned_points)} ${earnedLabel}! Total: ${data.total_points} ${totalLabel}`);
+      } else {
+        setPointsMessage("");
+      }
+    } catch (err) {
+      console.warn("Failed to calculate points", err);
+    }
   };
 
   const thermostatOn = temperature < 20;
-  const acOn = temperature > 25;
-  const lightsOn = motion;
   const energySaverOn = energyUsage > 5;
-
-          (async () => {
-      try {
-        await fetchWithAuth("http://localhost:5000/simple_log", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ line: `3)The current temperature is: ${temperature}°C; Motion detected: ${motion ? "Yes" : "No"}; Energy usage: ${energyUsage} kWh; The thermostat is ${thermostatOn ? "On" : "Off"}; The air conditioner is ${acOn ? "On" : "Off"}; The lights are ${lightsOn ? "On" : "Off"}; Energy saver mode is ${energySaverOn ? "On" : "Off"}` }),
-        });
-        console.log("Sent simple_log");
-      } catch (err) {
-        console.warn("Failed to send simple_log", err);
-      }
-    })();
 
   return (
     <div className="smart-house-container">
@@ -149,7 +180,35 @@ function SmartHouse() {
             onChange={(e) => updateServer("motion", e.target.checked)}
           />
         </div>
+
+        {/* Manual toggles for AC and Lights */}
+        <div>
+          <label>Air Conditioner: </label>
+          <input
+            type="checkbox"
+            checked={air_conditioner}
+            onChange={(e) => setAcOn(e.target.checked)}
+          />
+        </div>
+
+        <div>
+          <label>Lights: </label>
+          <input
+            type="checkbox"
+            checked={lights}
+            onChange={(e) => setLightsOn(e.target.checked)}
+          />
+        </div>
       </div>
+
+      {/* Display points message */}
+      {pointsMessage && (
+        <div className="points-box">
+          <p className={`points-message ${pointsMessage.includes("lost") ? "negative" : "positive"}`}>
+            {pointsMessage}
+          </p>
+        </div>
+      )}
 
       <div className="devices-grid">
         <div className="device-card">
@@ -157,12 +216,12 @@ function SmartHouse() {
           <p>Thermostat: {thermostatOn ? "On" : "Off"}</p>
         </div>
         <div className="device-card">
-          <div className={`bulb ${acOn ? "on" : "off"}`} />
-          <p>Air Conditioner: {acOn ? "On" : "Off"}</p>
+          <div className={`bulb ${air_conditioner ? "on" : "off"}`} />
+          <p>Air Conditioner: {air_conditioner ? "On" : "Off"}</p>
         </div>
         <div className="device-card">
-          <div className={`bulb ${lightsOn ? "on" : "off"}`} />
-          <p>Lights: {lightsOn ? "On" : "Off"}</p>
+          <div className={`bulb ${lights ? "on" : "off"}`} />
+          <p>Lights: {lights ? "On" : "Off"}</p>
         </div>
         <div className="device-card">
           <div className={`bulb ${energySaverOn ? "on" : "off"}`} />
@@ -170,18 +229,10 @@ function SmartHouse() {
         </div>
       </div>
       <div className="note">
-        <p>
-          🌡️ Thermostat <b>On</b> if temperature is below 20°C.  
-        </p>
-        <p>
-          ❄️ Air Conditioner <b>On</b> if temperature is above 25°C.  
-        </p>
-        <p>
-          💡 Lights <b>On</b> if motion is detected.  
-        </p>
-        <p>
-          ⚡ Energy Saver Mode <b>On</b> if usage is above 5 kWh.  
-        </p>
+        <p>🌡️ Thermostat <b>On</b> if temperature is below 20°C.</p>
+        <p>❄️ Air Conditioner <b>On</b> if temperature is above 25°C.</p>
+        <p>💡 Lights <b>On</b> if motion is detected.</p>
+        <p>⚡ Energy Saver Mode <b>On</b> if usage is above 5 kWh.</p>
       </div>
     </div>
   );
