@@ -93,7 +93,9 @@ useEffect(() => {
 
         const data = await response.json();
         if (mounted) {
-          setPointsMessage(`You earned ${data.earned_points} points! Total: ${data.total_points} points`);
+          const earnedLabel = data.earned_points === 1 ? "point" : "points";
+          const totalLabel = data.total_points === 1 ? "point" : "points";
+          setPointsMessage(`You earned ${data.earned_points} ${earnedLabel}! Total: ${data.total_points} ${totalLabel}`);
         }
       } catch (err) {
         console.warn("Failed to update leaderboard", err);
