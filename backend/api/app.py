@@ -14,6 +14,13 @@ import json
 
 import hashlib
 
+from leaderBoard import (
+    calculate_tariff_points,
+    calculate_smart_house_points,
+    update_user_points,
+    get_leaderboard,
+)
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -224,6 +231,45 @@ def route_simple_log():
 @app.route("/simple_log/clear", methods=["POST"])
 def route_simple_log_clear():
     return simple_log_clear()
+
+# Leaderboard endpoints
+
+@app.route("/calculate/tariff_points", methods=["POST"])
+def route_tariff_points():
+    data = request.get_json()
+    user_name = data.get("user_name")
+    prev_cost = float(data.get("previous_cost", 0))
+    est_cost = float(data.get("estimated_cost", 0))
+
+    earned = calculate_tariff_points(prev_cost, est_cost)
+    total = update_user_points(user_name, earned)
+    return jsonify({"earned_points": earned, "total_points": total})
+
+
+@app.route("/calculate/smart_house_points", methods=["POST"])
+def route_smart_house_points():
+    data = request.get_json()
+    user_name = data.get("user_name")
+    energy_usage = float(data.get("energy_usage", 0))
+    thermostat = bool(data.get("thermostat", False))
+    air_conditioner = bool(data.get("air_conditioner", False))
+    lights = bool(data.get("lights", False))
+    energy_saving_mode = bool(data.get("energy_saving_mode", False))
+
+    earned = calculate_smart_house_points(
+        energy_usage,
+        thermostat,
+        air_conditioner,
+        lights,
+        energy_saving_mode,
+    )
+    total = update_user_points(user_name, earned)
+    return jsonify({"earned_points": earned, "total_points": total})
+
+
+@app.route("/leaderboard", methods=["GET"])
+def route_leaderboard():
+    return jsonify({"leaderboard": get_leaderboard()})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
