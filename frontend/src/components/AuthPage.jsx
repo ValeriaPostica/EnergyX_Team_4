@@ -71,7 +71,8 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
                     email: email,
                     password: password,
                     role: roleChoice,
-                    smart_meter_id: roleChoice === "provider" ? smartMeterId : null,
+                    smart_meter_id: smartMeterId,
+
                 }),
             });
 
@@ -184,7 +185,7 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
 
                         {isRegistering && (
                             <div className="mb-3">
-                                <label className="form-label">Smart Meter ID (required for providers)</label>
+                                <label className="form-label">Smart Meter ID</label>
                                 <input
                                     type="text"
                                     className="form-control"
@@ -251,6 +252,19 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </div>
+                        )}
+
+                        {isRegistering && (
+                            <div className="mb-3">
+                                <label className="form-label">Smart Meter ID</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    required
+                                    value={smartMeterId}
+                                    onChange={(e) => setSmartMeterId(e.target.value)}
                                 />
                             </div>
                         )}
