@@ -53,9 +53,9 @@ def register():
 	if not validate_role(role):
 		return jsonify({'error': 'Role must be either provider or consumer'}), 400
 
-	#check if provider has a smart meter
-	if role == 'provider' and not smart_meter_id:
-		return jsonify({'error': 'Smart meter ID is required for providers'}), 400
+	#check if user has a smart meter
+	if not smart_meter_id:
+		return jsonify({'error': 'Smart meter ID is required'}), 400
 
 	try:
 		with engine.connect() as conn:
