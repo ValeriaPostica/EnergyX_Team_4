@@ -59,10 +59,14 @@
 }
 
 .points-message {
-  color: #007f00; /* green for success */
+  color: #007f00;
   font-weight: bold;
   font-size: 18px;
   margin-top: 16px;
+  background-color: #e6ffe6;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 @media (max-width: 768px) {
