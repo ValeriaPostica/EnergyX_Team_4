@@ -11,6 +11,48 @@ leaderboard = {
     "Cristina Dobre": 90,
 }
 
+# Points calculation functions
+
+def calculate_tariff_points(previous_cost: float, estimated_cost: float) -> int:
+    """points = round((Previous Cost - Estimated Current Cost) / 10)"""
+    try:
+        points = round((previous_cost - estimated_cost) / 10)
+        return int(points)
+    except Exception as e:
+        print(f"Error calculating tariff points: {e}")
+        return 0
+
+def calculate_smart_house_points(
+    energy_usage: float,
+    thermostat: bool,
+    air_conditioner: bool,
+    lights: bool,
+    energy_saving_mode: bool
+) -> int:
+    points = 0
+    # Base rule: 3 kW is normal
+    if energy_usage < 3:
+        points += 20
+    elif energy_usage > 3:
+        points -= 20
+
+    # Device rules
+    for device in [thermostat, air_conditioner, lights]:
+        if device:
+            points -= 10   # device ON → minus points
+        else:
+            points += 10   # device OFF → plus points
+
+    # Energy saving mode rule
+    if energy_saving_mode:
+        points += 10
+    else:
+        points -= 10
+
+    return points
+
+# Leaderboard functions
+
 def update_user_points(user_name: str, points: int):
     """Update the points for a given user."""
     if user_name in leaderboard:
