@@ -24,6 +24,7 @@ def calculate_tariff_points(previous_cost: float, estimated_cost: float) -> int:
 
 def calculate_smart_house_points(
     energy_usage: float,
+    previous_energy_usage: float,
     thermostat: bool,
     air_conditioner: bool,
     lights: bool,
@@ -31,10 +32,11 @@ def calculate_smart_house_points(
 ) -> int:
     points = 0
     # Base rule: 3 kW is normal
-    if energy_usage < 3:
+    if previous_energy_usage >= 3 and energy_usage < 3:
         points += 20
-    elif energy_usage > 3:
+    elif previous_energy_usage < 3 and energy_usage >= 3:
         points -= 20
+
 
     # Device rules
     for device in [thermostat, air_conditioner, lights]:

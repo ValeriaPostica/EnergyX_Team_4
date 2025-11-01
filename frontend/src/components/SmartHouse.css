@@ -76,3 +76,14 @@
   padding: 12px;
   border-radius: 8px;
 }
+
+.points-message.positive {
+  color: #007f00;
+  font-weight: bold;
+}
+
+.points-message.negative {
+  color: #d9534f;
+  font-weight: bold;
+}
+
