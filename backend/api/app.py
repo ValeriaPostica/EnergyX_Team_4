@@ -258,19 +258,24 @@ def route_simple_log_clear(current_user):
 @app.route("/calculate/tariff_points", methods=["POST"])
 def route_tariff_points():
     data = request.get_json()
-    user_name = data.get("user_name")
+    user = data.get("user")
     prev_cost = float(data.get("previous_cost", 0))
     est_cost = float(data.get("estimated_cost", 0))
 
     earned = calculate_tariff_points(prev_cost, est_cost)
-    total = update_user_points(user_name, earned)
-    return jsonify({"earned_points": earned, "total_points": total})
-
+    total = update_user_points(user, earned)
+    return jsonify({
+        "user": user,
+        "earned_points": earned,
+        "total_points": total
+    })
 
 @app.route("/calculate/smart_house_points", methods=["POST"])
 def route_smart_house_points():
     data = request.get_json()
-    user_name = data.get("user_name")
+    user = data.get("user")
+    print("Received data:", data)
+    print("Extracted user:", user)
     energy_usage = float(data.get("energy_usage", 0))
     thermostat = bool(data.get("thermostat", False))
     air_conditioner = bool(data.get("air_conditioner", False))
@@ -284,8 +289,12 @@ def route_smart_house_points():
         lights,
         energy_saving_mode,
     )
-    total = update_user_points(user_name, earned)
-    return jsonify({"earned_points": earned, "total_points": total})
+    total = update_user_points(user, earned)
+    return jsonify({
+        "user": user,
+        "earned_points": earned,
+        "total_points": total
+    })
 
 
 @app.route("/leaderboard", methods=["GET"])
