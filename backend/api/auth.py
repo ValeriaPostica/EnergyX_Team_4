@@ -124,7 +124,7 @@ def login():
 		with engine.connect() as conn:
 			#get user from db
 			result = conn.execute(
-				text("SELECT id, username, password, role, smart_meter_id FROM users WHERE username = :username"),
+				text("SELECT id, username, email, password, role, smart_meter_id FROM users WHERE username = :username"),
 				{"username": username}
 			)
 			user = result.fetchone()
