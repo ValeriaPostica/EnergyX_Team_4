@@ -6,7 +6,7 @@ import aiCustomer
 import os
 import openai
 from model.xlstm_runner import m_eval
-from leaderBoard import smart_house_calculator, update_user_points
+#from leaderBoard import smart_house_calculator, update_user_points
 from retrieve_data import get_location_color, get_series, general_info, regional_consumption, calc_timeseries_from_db, get_series_country, get_all_keys
 # Commented our lines below and above use ai implementations
 from gauss_tarrif import precompute_gaussian_peak
@@ -17,7 +17,7 @@ import hashlib
 
 from leaderBoard import (
     calculate_tariff_points,
-    calculate_smart_house_points,
+    #calculate_smart_house_points,
     update_user_points,
     get_leaderboard,
 )
@@ -249,7 +249,7 @@ def route_tariff_points():
         "earned_points": earned,
         "total_points": total
     })
-
+"""
 @app.route("/calculate/smart_house_points", methods=["POST"])
 def route_smart_house_points():
     data = request.get_json()
@@ -273,7 +273,7 @@ def route_smart_house_points():
         "total_points": total,
         "message": f"You {action} {abs(earned)} {points_text}! Total: {total} points"
     })
-
+"""
 @app.route("/leaderboard", methods=["GET"])
 def route_leaderboard():
     return jsonify({"leaderboard": get_leaderboard()})

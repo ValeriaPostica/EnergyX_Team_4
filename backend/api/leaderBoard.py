@@ -56,6 +56,29 @@ def calculate_smart_house_points(
     # Cross 3kW boundary
     if energy_usage < 3 and prev_energy >= 3:
         energy_thresholds_crossed[user] = {current_int}
+    previous_energy_usage: float,
+    thermostat: bool,
+    air_conditioner: bool,
+    lights: bool,
+    energy_saving_mode: bool
+) -> int:
+    points = 0
+    # Base rule: 3 kW is normal
+    if previous_energy_usage >= 3 and energy_usage < 3:
+        points += 20
+    elif previous_energy_usage < 3 and energy_usage >= 3:
+        points -= 20
+
+
+    # Device rules
+    for device in [thermostat, air_conditioner, lights]:
+        if device:
+            points -= 10   # device ON → minus points
+        else:
+            points += 10   # device OFF → plus points
+
+    # Energy saving mode rule
+    if energy_saving_mode:
         points += 10
     elif energy_usage >= 3 and prev_energy < 3:
         energy_thresholds_crossed[user] = {current_int}
