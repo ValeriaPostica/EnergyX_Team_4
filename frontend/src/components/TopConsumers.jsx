@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./DashboardandConsumers.css";
+import { fetchWithAuth } from '../utils/api';
 
 const TopConsumers = () => {
   const [consumers, setConsumers] = useState({});
@@ -8,7 +9,7 @@ const TopConsumers = () => {
   useEffect(() => {
     const fetchConsumers = async () => {
       try {
-        const response = await fetch("http://localhost:5000/consumption");
+        const response = await fetchWithAuth("http://localhost:5000/consumption");
         console.log("Response status:", response);
         const result = await response.json();
         setConsumers(result || {});

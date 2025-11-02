@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "./SearchPage.css";
+import { fetchWithAuth } from '../utils/api';
 
 const SearchPage = () => {
   const [time, setTime] = useState("03.06.2025 00:00:00");
@@ -15,7 +16,7 @@ const SearchPage = () => {
     const fetchCityColors = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/color", {
+        const response = await fetchWithAuth("http://localhost:5000/color", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ time }),
