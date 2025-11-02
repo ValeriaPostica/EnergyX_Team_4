@@ -6,6 +6,7 @@ import aiCustomer
 import os
 import openai
 from model.xlstm_runner import m_eval
+#from leaderBoard import smart_house_calculator, update_user_points
 from retrieve_data import get_location_color, get_series, general_info, regional_consumption, calc_timeseries_from_db, get_series_country, get_all_keys
 # Commented our lines below and above use ai implementations
 from gauss_tarrif import precompute_gaussian_peak
@@ -13,6 +14,13 @@ from simple_log_handler import simple_log, simple_log_clear
 import json
 
 import hashlib
+
+from leaderBoard import (
+    calculate_tariff_points,
+    #calculate_smart_house_points,
+    update_user_points,
+    get_leaderboard,
+)
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -224,6 +232,51 @@ def route_simple_log():
 @app.route("/simple_log/clear", methods=["POST"])
 def route_simple_log_clear():
     return simple_log_clear()
+
+# Leaderboard endpoints
+
+@app.route("/calculate/tariff_points", methods=["POST"])
+def route_tariff_points():
+    data = request.get_json()
+    user = data.get("user")
+    prev_cost = float(data.get("previous_cost", 0))
+    est_cost = float(data.get("estimated_cost", 0))
+
+    earned = calculate_tariff_points(prev_cost, est_cost)
+    total = update_user_points(user, earned)
+    return jsonify({
+        "user": user,
+        "earned_points": earned,
+        "total_points": total
+    })
+"""
+@app.route("/calculate/smart_house_points", methods=["POST"])
+def route_smart_house_points():
+    data = request.get_json()
+    user = data.get("user")
+    energy_usage = float(data.get("energy_usage", 0))
+    temperature = float(data.get("temperature", 0))
+    motion = bool(data.get("motion", False))
+    energy_saving_mode = bool(data.get("energy_saving_mode", False))
+
+    earned = calculate_smart_house_points(
+        user, energy_usage, temperature, motion, energy_saving_mode
+    )
+    total = update_user_points(user, earned)
+    
+    points_text = "point" if abs(earned) == 1 else "points"
+    action = "earned" if earned >= 0 else "lost"
+    
+    return jsonify({
+        "user": user,
+        "earned_points": earned,
+        "total_points": total,
+        "message": f"You {action} {abs(earned)} {points_text}! Total: {total} points"
+    })
+"""
+@app.route("/leaderboard", methods=["GET"])
+def route_leaderboard():
+    return jsonify({"leaderboard": get_leaderboard()})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
