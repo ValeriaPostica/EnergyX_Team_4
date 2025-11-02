@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./RecommendationsPage.css";
+import { fetchWithAuth } from '../utils/api';
 
 const RecommendationsPage = () => {
   const [recommendations, setRecommendations] = useState([]);
@@ -7,7 +8,7 @@ const RecommendationsPage = () => {
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        const response = await fetch("http://localhost:5000/ai");
+        const response = await fetchWithAuth("http://localhost:5000/ai");
         const data = await response.json();
         setRecommendations(data);
       } catch (error) {

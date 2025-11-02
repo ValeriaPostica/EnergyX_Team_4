@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import "./TariffCalculator.css";
+import { fetchWithAuth } from '../utils/api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -44,7 +45,7 @@ function TariffCalculator() {
       const fetchTariff = async () => {
         setLoading(true);
         try {
-          const resp = await fetch(`http://localhost:5000/tariff`, { signal: controller.signal });
+          const resp = await fetchWithAuth(`http://localhost:5000/tariff`, { signal: controller.signal });
           if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
           const json = await resp.json();
           // Compute estimated cost using the returned distribution value for the selected hour
@@ -80,7 +81,7 @@ function TariffCalculator() {
     let mounted = true;
     (async () => {
       try {
-        await fetch("http://localhost:5000/simple_log", {
+        await fetchWithAuth("http://localhost:5000/simple_log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ line: `2)The previous cost of the tariff the user was charged is: ${previousCost} MDL; The current estimated cost is: ${currentCost} MDL` }),

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
+import { fetchWithAuth } from '../utils/api';
 import {
   Chart as ChartJS,
   LineElement,
@@ -37,7 +38,7 @@ const PredictionsPage = () => {
           : `http://localhost:5000/pred/loc/${locationName}/week`;
         
         console.log(`Fetching predictions for ${city} (${locationName}) from: ${endpoint}`);
-        const response = await fetch(endpoint);
+        const response = await fetchWithAuth(endpoint);
         const result = await response.json();
         
         if (response.ok) {
