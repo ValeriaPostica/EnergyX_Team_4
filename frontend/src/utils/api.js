@@ -1,44 +1,32 @@
-// function to make authenticated API calls
 export const fetchWithAuth = async (url, options = {}) => {
-  const token = localStorage.getItem('token');
-  
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
-  
-  // If token is invalid, redirect to login
-  if (response.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/';
-  }
-  
-  return response;
-};
+    const token = localStorage.getItem('token');
 
-// Helper to get current user from localStorage
-export const getCurrentUser = () => {
-  const userStr = localStorage.getItem('user');
-  return userStr ? JSON.parse(userStr) : null;
-};
+    console.log('fetchWithAuth called for:', url);
+    console.log('Token exists:', !!token);
 
-// Helper to check if user is logged in
-export const isAuthenticated = () => {
-  return localStorage.getItem('token') !== null;
-};
+    const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+    };
 
-// Helper to logout
-export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+        ...options,
+        headers,
+    });
+
+    console.log('Response status:', response.status, 'for', url);
+
+    // If token is invalid, redirect to login
+    if (response.status === 401) {
+        console.log('Got 401, redirecting to login');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+    }
+
+    return response;
 };

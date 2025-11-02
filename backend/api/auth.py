@@ -15,7 +15,7 @@ DATABASE_URL = "postgresql://postgres:11111@localhost:5433/postgres"
 engine = create_engine(DATABASE_URL)
 
 # secret key for jwt
-SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-secret-key-change-this-in-production') #CHANGE IN PRODUCTION
+SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-secret-key-change-this-in-production')
 
 def validate_email(email):
 	"""Checking whether email is valid"""
@@ -32,35 +32,36 @@ def generate_token(user_id, username, role):
 		'user_id': user_id,
 		'username': username,
 		'role': role,
-		'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24), #token expires in 24 hours
+		'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24),
 		'iat': datetime.datetime.utcnow()
 	}
 	token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 	return token
 
 def token_required(f):
-	"""Decorator to protect routes - reqired valid jwt token"""
+	"""Decorator to protect routes - required valid jwt token"""
 	@wraps(f)
 	def decorated(*args, **kwargs):
-		token: None
+		token = None
 
 		#get token from authorization header
 		if 'Authorization' in request.headers:
 			auth_header = request.headers['Authorization']
 			try:
-				token = auth_header.split(" ")[1] #fromat: bearer <token>
+				token = auth_header.split(" ")[1]
 			except IndexError:
 				return jsonify({'error': 'Invalid token format'}), 401
+		
 		if not token:
-			return jsonify ({'error': 'Token is missing'}), 401
+			return jsonify({'error': 'Token is missing'}), 401
 		
 		try:
-			#decode and verify Token
+			#decode and verify token
 			data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
 			current_user = {
-				'user_id': user_id,
-				'username': username,
-				'role': role
+				'user_id': data['user_id'],
+				'username': data['username'],
+				'role': data['role']
 			}
 		except jwt.ExpiredSignatureError:
 			return jsonify({'error': 'Token has expired'}), 401
@@ -71,13 +72,11 @@ def token_required(f):
 
 	return decorated
 
-#registering process...
 @auth_bp.route('/register', methods=['POST'])
 def register():
 	"""Register a new user"""
 	data = request.get_json()
 
-	#vakidate required fields
 	if not data:
 		return jsonify({'error': 'No data provided'}), 400
 
@@ -87,9 +86,7 @@ def register():
 	role = data.get('role')
 	smart_meter_id = data.get('smart_meter_id')
 
-
-
-	#check fields:
+	#check fields
 	if not username:
 		return jsonify({'error': 'Username is required'}), 400
 	if not email:
@@ -99,30 +96,30 @@ def register():
 	if not role:
 		return jsonify({'error': 'Role is required'}), 400
 	if not smart_meter_id:
-        return jsonify({'error': 'Smart meter ID is required'}), 400
+		return jsonify({'error': 'Smart meter ID is required'}), 400
 
-	#validate email folmat
+	#validate email format
 	if not validate_email(email):
 		return jsonify({'error': 'Invalid email format'}), 400
 
-	#check if user has a smart meter
-	if not smart_meter_id:
-		return jsonify({'error': 'Smart meter ID is required'}), 400
+	#validate role
+	if not validate_role(role):
+		return jsonify({'error': 'Role must be either "provider" or "consumer"'}), 400
 
 	try:
 		with engine.connect() as conn:
 			#checking if username already exists
 			result = conn.execute(
-				text("SELECT id FROM users WHERE username =:username"),
-				{"username":username}
+				text("SELECT id FROM users WHERE username = :username"),
+				{"username": username}
 			)
 			if result.fetchone():
 				return jsonify({'error': 'Username already exists'}), 400
 
 			#checking if email already exists
 			result = conn.execute(
-				text("SELECT id FROM users WHERE email =:email"),
-				{"email":email}
+				text("SELECT id FROM users WHERE email = :email"),
+				{"email": email}
 			)
 			if result.fetchone():
 				return jsonify({'error': 'Email already exists'}), 400
@@ -146,7 +143,7 @@ def register():
 			)
 			conn.commit()
 
-			return jsonify ({
+			return jsonify({
 				'message': 'User registered successfully',
 				'username': username,
 				'role': role
@@ -161,7 +158,7 @@ def login():
 	data = request.get_json()
 
 	if not data:
-		return jsonify({'error': 'No data provded'}), 400
+		return jsonify({'error': 'No data provided'}), 400
 
 	username = data.get('username')
 	password = data.get('password')
@@ -181,19 +178,19 @@ def login():
 			)
 			user = result.fetchone()
 
-			#check user and password
 			if not user:
 				return jsonify({'error': 'Invalid username or password'}), 401
 
 			if not check_password_hash(user[3], password):
 				return jsonify({'error': 'Invalid username or password'}), 401
 
-			#generate jwt Token
+			#generate jwt token
 			token = generate_token(user[0], user[1], user[4])
 
 			#login successful
 			return jsonify({
 				'message': 'Login successful',
+				'token': token,
 				'user': {
 					'id': user[0],
 					'username': user[1],
@@ -204,19 +201,19 @@ def login():
 			}), 200
 
 	except Exception as e:
-		return jsonify({'error': f'Login failed:{str(e)}'}), 500
+		return jsonify({'error': f'Login failed: {str(e)}'}), 500
 
 @auth_bp.route('/logout', methods=['POST'])
 @token_required
 def logout(current_user):
-	"""Logout user(token becomes invalid on client side)"""
+	"""Logout user (token becomes invalid on client side)"""
 	return jsonify({'message': 'Logout successful'}), 200
 
 @auth_bp.route('/verify', methods=['GET'])
 @token_required
 def verify_token(current_user):
-    """Verify if token is valid and return user info"""
-    return jsonify({
-        'valid': True,
-        'user': current_user
-    }), 200
+	"""Verify if token is valid and return user info"""
+	return jsonify({
+		'valid': True,
+		'user': current_user
+	}), 200
