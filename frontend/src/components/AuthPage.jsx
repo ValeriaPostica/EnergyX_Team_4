@@ -31,20 +31,31 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
             const data = await response.json();
 
             if (response.ok) {
-                // Login successful
+                // Login successful - store token
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
                 setRole(data.user.role);
                 setUserId(data.user.role === "provider" ? data.user.smart_meter_id : data.user.id);
                 setCurrentPage("home");
 
                 // Clear simple_log on login
                 if (data.user.role === "consumer") {
-                    fetch("http://localhost:5000/simple_log/clear", { method: "POST" }).catch((err) =>
+                    fetch("http://localhost:5000/simple_log/clear", {
+                        method: "POST",
+                        headers: {
+                        'Authorization': `Bearer${data.token}`
+                        }
+                    }).catch((err) =>
                         console.warn("Could not clear simple_log:", err)
                     );
 
                     fetch("http://localhost:5000/simple_log", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: {
+                            "Content-Type": "application/json",
+                            'Authorization': `Bearer${data.token}`
+                        },
                         body: JSON.stringify({
                             line: `0)The smart meter with ID ${data.user.smart_meter_id || data.user.id} has been accessed.`
                         }),
