@@ -26,6 +26,8 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
                 }),
             });
 
+
+
             const data = await response.json();
 
             if (response.ok) {
