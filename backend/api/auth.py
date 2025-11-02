@@ -2,6 +2,10 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import create_engine, text
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
+import jwt
+import datetime
+from functools import wraps
+import os
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -9,6 +13,9 @@ auth_bp = Blueprint('auth', __name__)
 
 DATABASE_URL = "postgresql://postgres:11111@localhost:5433/postgres"
 engine = create_engine(DATABASE_URL)
+
+# secret key for jwt
+SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-secret-key-change-this-in-production') #CHANGE IN PRODUCTION
 
 def validate_email(email):
 	"""Checking whether email is valid"""
@@ -18,6 +25,51 @@ def validate_email(email):
 def validate_role(role):
 	"""Checking whether role is valid"""
 	return role in ['provider', 'consumer']
+
+def generate_token(user_id, username, role):
+	"""Generate JWT token for authenticated user"""
+	payload = {
+		'user_id': user_id,
+		'username': username,
+		'role': role,
+		'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24), #token expires in 24 hours
+		'iat': datetime.datetime.utcnow()
+	}
+	token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+	return token
+
+def token_required(f):
+	"""Decorator to protect routes - reqired valid jwt token"""
+	@wraps(f)
+	def decorated(*args, **kwargs):
+		token: None
+
+		#get token from authorization header
+		if 'Authorization' in request.headers:
+			auth_header = request.headers['Authorization']
+			try:
+				token = auth_header.split(" ")[1] #fromat: bearer <token>
+			except IndexError:
+				return jsonify({'error': 'Invalid token format'}), 401
+		if not token:
+			return jsonify ({'error': 'Token is missing'}), 401
+		
+		try:
+			#decode and verify Token
+			data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+			current_user = {
+				'user_id': user_id,
+				'username': username,
+				'role': role
+			}
+		except jwt.ExpiredSignatureError:
+			return jsonify({'error': 'Token has expired'}), 401
+		except jwt.InvalidTokenError:
+			return jsonify({'error': 'Invalid token'}), 401
+
+		return f(current_user, *args, **kwargs)
+
+	return decorated
 
 #registering process...
 @auth_bp.route('/register', methods=['POST'])
@@ -35,6 +87,8 @@ def register():
 	role = data.get('role')
 	smart_meter_id = data.get('smart_meter_id')
 
+
+
 	#check fields:
 	if not username:
 		return jsonify({'error': 'Username is required'}), 400
@@ -44,14 +98,12 @@ def register():
 		return jsonify({'error': 'Password is required'}), 400
 	if not role:
 		return jsonify({'error': 'Role is required'}), 400
+	if not smart_meter_id:
+        return jsonify({'error': 'Smart meter ID is required'}), 400
 
 	#validate email folmat
 	if not validate_email(email):
 		return jsonify({'error': 'Invalid email format'}), 400
-
-	#validate role
-	if not validate_role(role):
-		return jsonify({'error': 'Role must be either provider or consumer'}), 400
 
 	#check if user has a smart meter
 	if not smart_meter_id:
@@ -105,7 +157,7 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-	"""Login user"""
+	"""Login user and return jwt token"""
 	data = request.get_json()
 
 	if not data:
@@ -136,6 +188,9 @@ def login():
 			if not check_password_hash(user[3], password):
 				return jsonify({'error': 'Invalid username or password'}), 401
 
+			#generate jwt Token
+			token = generate_token(user[0], user[1], user[4])
+
 			#login successful
 			return jsonify({
 				'message': 'Login successful',
@@ -152,6 +207,16 @@ def login():
 		return jsonify({'error': f'Login failed:{str(e)}'}), 500
 
 @auth_bp.route('/logout', methods=['POST'])
-def logout():
-	"""Logout user"""
+@token_required
+def logout(current_user):
+	"""Logout user(token becomes invalid on client side)"""
 	return jsonify({'message': 'Logout successful'}), 200
+
+@auth_bp.route('/verify', methods=['GET'])
+@token_required
+def verify_token(current_user):
+    """Verify if token is valid and return user info"""
+    return jsonify({
+        'valid': True,
+        'user': current_user
+    }), 200
