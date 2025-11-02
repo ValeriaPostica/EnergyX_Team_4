@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
+import { fetchWithAuth } from '../utils/api';
 import {
   Chart as ChartJS,
   LineElement,
@@ -36,8 +37,8 @@ const HourlyConsumption = () => {
 
         let yesterday = 6;
         let today = 7;
-        const y_res = await fetch(`http://localhost:5000/diff/${userId}/${yesterday}`);
-        const t_res = await fetch(`http://localhost:5000/diff/${userId}/${today}`);
+        const y_res = await fetchWithAuth(`http://localhost:5000/diff/${userId}/${yesterday}`);
+        const t_res = await fetchWithAuth(`http://localhost:5000/diff/${userId}/${today}`);
         let y_arr = await y_res.json();
         let t_arr = await t_res.json();
 
@@ -45,7 +46,7 @@ const HourlyConsumption = () => {
         let result2;
         try {
 
-          const response2 = await fetch(`http://localhost:5000/pred/${userId}`);
+          const response2 = await fetchWithAuth(`http://localhost:5000/pred/${userId}`);
           result2 = await response2.json();
           console.log("Fetched prediction data:", result2);
         } catch (predError) {
@@ -97,7 +98,7 @@ const HourlyConsumption = () => {
 
         (async () => {
       try {
-        await fetch("http://localhost:5000/simple_log", {
+        await fetchWithAuth("http://localhost:5000/simple_log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
 
@@ -123,7 +124,7 @@ const HourlyConsumption = () => {
       }
     };
 
-    fetchData();
+    SData();
   }, [userId]); // refetch dacă userId se schimbă
 
   const data = {

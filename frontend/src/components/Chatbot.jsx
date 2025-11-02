@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Chatbot.css";
+import { fetchWithAuth } from '../utils/api';
 
 function Chatbot() {
   const [open, setOpen] = useState(false);
@@ -18,7 +19,7 @@ function Chatbot() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/ai/chat", {
+        const response = await fetchWithAuth("http://localhost:5000/ai/chat"s, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
