@@ -16,6 +16,7 @@ from migrations import load_migrations
 import hashlib
 
 from auth import auth_bp
+from auth import token_required
 
 from dotenv import load_dotenv
 load_dotenv()
