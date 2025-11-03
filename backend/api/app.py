@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
+from auth import auth_bp
 import aiProvider
 import aiCustomer
 import os
@@ -15,6 +16,8 @@ import json
 
 import hashlib
 
+from auth import auth_bp
+from auth import token_required
 from leaderBoard import (
     calculate_tariff_points,
     #calculate_smart_house_points,
@@ -24,7 +27,6 @@ from leaderBoard import (
 
 from dotenv import load_dotenv
 load_dotenv()
-
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -42,6 +44,8 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 
 app = Flask(__name__)
 CORS(app)
+
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Optional prediction caching to keep outputs consistent across repeated calls
 # even if the underlying time series updates in the database.
@@ -69,30 +73,36 @@ except Exception as e:
     print(f"Warning: could not create/truncate simple_log: {e}")
 
 @app.route("/diff/<id>/<day>")
-def diffs(id, day):
+@token_required
+def diffs(current_user, id, day):
     return get_series(id, day)
 
 @app.route("/")
 @app.route("/keys")
-def keys_route():
+@token_required
+def keys_route(current_user):
     return get_all_keys()
 
 diffs = general_info()
 @app.route("/general_info")
-def general_info_route():
+@token_required
+def general_info_route(current_user):
     return jsonify(diffs)
 
 values = precompute_gaussian_peak()
 @app.route("/tariff")
-def tariff():
+@token_required
+def tariff(current_user):
     return jsonify(values)
 
 @app.route("/region/all")
-def get_regions():
+@token_required
+def get_regions(current_user):
     return calc_timeseries_from_db()
 
 @app.route("/ai/chat", methods=['POST'])
-def chat_q():
+@token_required
+def chat_q(current_user):
     if client is None:
         return jsonify({"error": "OpenAI client not initialized"}), 500
     json_data = request.get_json()  # parse JSON body
@@ -103,15 +113,19 @@ def chat_q():
     return {"response": aiCustomer.get_ai_response(message)}
 
 @app.route("/pred/<user_id>")
-def pred_user(user_id):
+@token_required
+def pred_user(current_user, user_id):
     series = get_series(user_id)
     try:
-        return m_eval(series=series, week=False)
+        # Ensure we return a proper JSON response (list of floats)
+        predictions = m_eval(series=series, week=False)
+        return jsonify(predictions)
     except ValueError:
         return jsonify({"error": "Invalid user ID"}), 400
 
 @app.route("/pred/loc/<location_name>")
-def pred_location(location_name):
+@token_required
+def pred_location(current_user, location_name):
     """Get predictions for a specific location"""
     try:
         # Load regions index
@@ -152,7 +166,8 @@ def pred_location(location_name):
         return jsonify({"error": str(e)}), 500
     
 @app.route("/pred/loc/<location_name>/week")
-def pred_location_week(location_name):
+@token_required
+def pred_location_week(current_user, location_name):
     """Get predictions for a specific location"""
     try:
         # Load regions index
@@ -194,7 +209,8 @@ def pred_location_week(location_name):
 
 location_data = regional_consumption()
 @app.route("/consumption")
-def get_location_consumption():
+@token_required
+def get_location_consumption(current_user):
     #Get consumption data for a specific location
     try:
         return jsonify(location_data)
@@ -202,7 +218,8 @@ def get_location_consumption():
         return jsonify({"error": str(e)}), 500
     
 @app.route("/color", methods=['POST'])
-def give_color():
+@token_required
+def give_color(current_user):
     try:
         # Parse posted JSON (optional); not required for current implementation.
         req_data = request.get_json(silent=True) or {}
@@ -221,16 +238,19 @@ def give_color():
     
 response = aiProvider.get_ai_recommendations(client, location_data)
 @app.route("/ai")
-def get_ai_resp():
+@token_required
+def get_ai_resp(current_user):
     return response
 
 @app.route("/simple_log", methods=["POST"])
-def route_simple_log():
+@token_required
+def route_simple_log(current_user):
     return simple_log()
 
 
 @app.route("/simple_log/clear", methods=["POST"])
-def route_simple_log_clear():
+@token_required
+def route_simple_log_clear(current_user):
     return simple_log_clear()
 
 # Leaderboard endpoints

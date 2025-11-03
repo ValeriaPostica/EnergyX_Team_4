@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Leaderboard.css";
+import { fetchWithAuth } from '../utils/api'; //USE `fetchWithAuth` INSTEAD OF `fetch` - for token
 
 function Leaderboard() {
   const currentUser = "Ioana Vasilescu";

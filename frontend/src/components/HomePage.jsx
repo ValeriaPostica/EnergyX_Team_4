@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./HomePage.css";
+import { fetchWithAuth } from '../utils/api';
 
 /**
  * Expected backend payloads (any of these work):
@@ -22,7 +23,7 @@ function HomePage({ openMenu }) {
 
     (async () => {
       try {
-        const res = await fetch("http://localhost:5000/general_info");
+        const res = await fetchWithAuth("http://localhost:5000/general_info");
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const contentType = res.headers.get("content-type") || "";
 
@@ -77,7 +78,7 @@ Number of houses with smart meters connected: ${housesVal}
 Percentage of green energy used: ${GREEN_ENERGY}%
 Percentage of CO₂ reduction achieved: ${CO2_REDUCTION}%`;
 
-        fetch("http://localhost:5000/simple_log", {
+          fetchWithAuth("http://localhost:5000/simple_log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ line }),

@@ -1,19 +1,17 @@
 ## EnergyX_Team_4
-## This is how i run the project, if you have troubles look further, 
-## If any questions encountered just say :)
-### Also maybe i missed some libraries to add to requirements
-
-## Keys:
-Langchain key = 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
+### This is how i run the project, if you have troubles look further, 
+### If any questions encountered just ask me :)
 
 ## Run first time
 python3 -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r backend/api/requirements.txt
 
-$env:OPENAI_API_KEY= "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"
+$env:OPENAI_API_KEY= "OpenAi key"
 
-$env:LANGCHAIN_API_KEY= "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"
+$env:LANGCHAIN_API_KEY= "langchain key"
+
+python backend/api/create_users_table.py
 
 cd frontend
 npm install
