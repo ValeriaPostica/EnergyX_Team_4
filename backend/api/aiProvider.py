@@ -8,10 +8,17 @@ Each recommendation is one clear, actionable sentence.
 """
 
 
-import openai
+from openai import OpenAI
+from dotenv import load_dotenv
 import os
 import sys
 import json
+
+load_dotenv()
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI(api_key=api_key)
 
 
 # Set your OpenAI API key here or via environment variable OPENAI_API_KEY
@@ -125,9 +132,6 @@ if __name__ == "__main__":
 	"Tiraspol": 28081344,
 	"Ungheni": 31092545,
 	"Vadul lui Voda": 21735612}
-
-	OPENAI_API_KEY = "openAIkey"
-	client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 	recommendations = get_ai_recommendations(client, energy_data)
 	print("Recommendations:")

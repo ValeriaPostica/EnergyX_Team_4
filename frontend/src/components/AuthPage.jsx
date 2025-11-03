@@ -36,7 +36,9 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
                 localStorage.setItem('user', JSON.stringify(data.user));
 
                 setRole(data.user.role);
-                setUserId(data.user.role === "provider" ? data.user.smart_meter_id : data.user.id);
+                // Use the smart meter id as the domain identifier for energy data for ALL roles
+                // (consumer and provider views query energy by contour/smart-meter id)
+                setUserId(data.user.smart_meter_id);
                 setCurrentPage("home");
 
                 // Clear simple_log on login
@@ -44,7 +46,7 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
                     fetch("http://localhost:5000/simple_log/clear", {
                         method: "POST",
                         headers: {
-                        'Authorization': `Bearer${data.token}`
+                        'Authorization': `Bearer ${data.token}`
                         }
                     }).catch((err) =>
                         console.warn("Could not clear simple_log:", err)
@@ -54,7 +56,7 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            'Authorization': `Bearer${data.token}`
+                            'Authorization': `Bearer ${data.token}`
                         },
                         body: JSON.stringify({
                             line: `0)The smart meter with ID ${data.user.smart_meter_id || data.user.id} has been accessed.`

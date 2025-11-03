@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import { fetchWithAuth } from '../utils/api';
+
 import {
   Chart as ChartJS,
   LineElement,
@@ -124,7 +125,7 @@ const HourlyConsumption = () => {
       }
     };
 
-    SData();
+    fetchData();
   }, [userId]); // refetch dacă userId se schimbă
 
   const data = {

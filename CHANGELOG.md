@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.6.0] - 2025-11-1
+### Added and updated
+- Introduced smart house points system
+- Implemented initial logic for point allocation
+- Marked for further debugging and refinement
+
+- Added points calculation logic for user activities
+- Defined rules for energy-saving actions
+- Linked point system to leaderboard metrics
+- Developed in-memory leaderboard storage
+
+- Refined UI for clarity and responsiveness
+- Improved integration with backend pricing logic
+- Connected user actions to reward system
+- Conducted endpoint testing and minor modifications
+- Adjusted response formats for frontend compatibility
+
+## [1.5.0] - 2025-10-30
+### Additions and changes
+- Implemented dynamic loading mechanism for OpenAI key configuration
+- Enhanced flexibility for environment-based key management
+- Reduced risk of hardcoded secrets in deployment
+- Resolved minor conflicts during integration
+
 ## [1.4.0] - 2025-10-23
 ### Added
 - Integrated comprehensive IoT server infrastructure ([#21](https://github.com/ValeriaPostica/EnergyX_Team_4/issues/21))
@@ -131,3 +155,4 @@
     - Improved processing efficiency
     - Added validation for extreme values
     - Created visualization tools for analysis
+

@@ -33,7 +33,7 @@ function TariffCalculator() {
   const [loading, setLoading] = useState(false);
 
   const previousCost = 1200;
-
+  const [pointsMessage, setPointsMessage] = useState("");
   // Fetch current cost from backend
   useEffect(() => {
     // Debounce the fetch so quick slider moves don't trigger many requests.
@@ -75,6 +75,41 @@ function TariffCalculator() {
 
 
   // Send a simple log each time the computed cost updates (debounced fetch sets currentCost)
+useEffect(() => {
+    if (currentCost === null) return;
+
+    let mounted = true;
+
+        (async () => {
+      try {
+        const response = await fetch("http://localhost:5000/calculate/tariff_points", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user: "Ioana Vasilescu", // 🔧 You can make this dynamic later
+            previous_cost: previousCost,
+            estimated_cost: currentCost
+          }),
+        });
+
+        const data = await response.json();
+        if (mounted) {
+          const earnedLabel = data.earned_points === 1 ? "point" : "points";
+          const totalLabel = data.total_points === 1 ? "point" : "points";
+          setPointsMessage(`You earned ${data.earned_points} ${earnedLabel}! Total: ${data.total_points} ${totalLabel}`);
+        }
+      } catch (err) {
+        console.warn("Failed to update leaderboard", err);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentCost]);
+
+
+    // Send a simple log each time the computed cost updates (debounced fetch sets currentCost)
   useEffect(() => {
     if (currentCost === null) return;
 
@@ -96,6 +131,7 @@ function TariffCalculator() {
       mounted = false;
     };
   }, [currentCost]);
+
   // Chart data
   const labels = Array.from({ length: 25 }, (_, i) =>
     i.toString().padStart(2, "0")
@@ -179,6 +215,14 @@ function TariffCalculator() {
             : "Error fetching"}
         </p>
       </div>
+
+      {/* Feedback message for earned points */}
+      {pointsMessage && (
+        <div className="points-box">
+          <p className="points-message">{pointsMessage}</p>
+        </div>
+      )}
+
 
       <div className="description-box">
         <h4>How to read this chart</h4>
