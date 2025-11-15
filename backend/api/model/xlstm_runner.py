@@ -11,10 +11,6 @@ from typing import List
 import os
 import random
 
-# -----------------------------------------------------------------------------
-# Set BLAS/threading env vars BEFORE importing numpy/torch to avoid
-# nondeterministic parallel reductions and cross-platform variation.
-# -----------------------------------------------------------------------------
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
