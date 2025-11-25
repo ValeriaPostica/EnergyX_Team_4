@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, text
-import sys
+# import sys
 from typing import Optional
 
 # Usage: python series.py <contour_id>
@@ -91,7 +91,7 @@ def general_info(schema: Optional[str] = "interpolated"):
     return current_usage, int(number_of_contours)
 
 def regional_consumption():
-    table = f"interpolated.contour c JOIN interpolated.locations l ON c.location_id = l.location_id JOIN interpolated.contour_data cd ON c.contour_id = cd.contour_id"
+    table = "interpolated.contour c JOIN interpolated.locations l ON c.location_id = l.location_id JOIN interpolated.contour_data cd ON c.contour_id = cd.contour_id"
     sql = text(
         f"SELECT l.name, cd.energy_import FROM {table} ORDER BY l.name, cd.clock ASC"
     )
