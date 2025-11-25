@@ -7,8 +7,8 @@ import aiCustomer
 import os
 import openai
 from model.xlstm_runner import m_eval
-from leaderBoard import smart_house_calculator, update_user_points
-from retrieve_data import get_location_color, get_series, general_info, regional_consumption, calc_timeseries_from_db, get_series_country, get_all_keys
+#from leaderBoard import smart_house_calculator, update_user_points
+from retrieve_data import get_location_color, get_series, regional_consumption, calc_timeseries_from_db, get_series_country, get_all_keys
 # Commented our lines below and above use ai implementations
 from gauss_tarrif import precompute_gaussian_peak
 from simple_log_handler import simple_log, simple_log_clear
@@ -16,6 +16,8 @@ import json
 from migrations import load_migrations
 import hashlib
 
+# from auth import auth_bp
+from auth import token_required
 from leaderBoard import (
     calculate_tariff_points,
     calculate_smart_house_points,
@@ -86,7 +88,7 @@ def diffs(current_user, id, day):
 def keys_route(current_user):
     return get_all_keys()
 
-diffs = general_info()
+# diffs = general_info()
 @app.route("/general_info")
 @token_required
 def general_info_route(current_user):
