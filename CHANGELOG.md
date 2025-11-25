@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.0] - 2025-11-1
+### Added and updated
+- Added `/pred/simulate` backend improvements: accept URL-encoded JSON schedules, validate tuples, and surface consistent JSON errors when payloads are invalid.
+- Introduced device-aware forecasting totals so simulations align with the LSTM adjustments for thermostat, AC, lighting, and saver modes.
+
 ## [1.6.0] - 2025-11-1
 ### Added and updated
 - Introduced smart house points system
