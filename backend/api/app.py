@@ -6,7 +6,7 @@ import aiProvider
 import aiCustomer
 import os
 import openai
-from model.xlstm_runner import m_eval
+from model.xlstm_runner import m_eval, m_eval_devices
 #from leaderBoard import smart_house_calculator, update_user_points
 from retrieve_data import get_location_color, get_series, general_info, regional_consumption, calc_timeseries_from_db, get_series_country, get_all_keys
 # Commented our lines below and above use ai implementations
@@ -206,6 +206,56 @@ def pred_location_week(current_user, location_name):
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/pred/simulate/<user_id>/<schedule>")
+@token_required
+def pred_simulate(current_user, user_id, schedule):
+    """Simulate device schedule for a user.
+
+    The `schedule` path parameter may be a URL-encoded JSON array, e.g.
+    %5B%5B%22thermostat%22%2C12%2C15%5D%2C...%5D. We attempt to decode JSON
+    and normalize it to a list of (device, start, end) tuples expected by
+    `m_eval_devices`.
+    """
+    try:
+        # Try to parse schedule as JSON (frontend sends encoded JSON in the path)
+        parsed_schedule = None
+        try:
+            parsed_schedule = json.loads(schedule)
+        except Exception:
+            # If parsing fails, leave as raw string (will be handled below)
+            parsed_schedule = schedule
+
+        # Normalize to list of (device, start, end) tuples
+        normalized = []
+        if isinstance(parsed_schedule, list):
+            for item in parsed_schedule:
+                if (isinstance(item, (list, tuple)) and len(item) >= 3):
+                    try:
+                        device = str(item[0])
+                        start = int(item[1])
+                        end = int(item[2])
+                        normalized.append((device, start, end))
+                    except Exception:
+                        # Skip malformed entries
+                        continue
+        else:
+            # If schedule wasn't JSON/list, return an error to the client
+            return jsonify({"error": "Schedule must be a JSON array of [device, start, end]"}), 400
+
+        if not normalized:
+            return jsonify({"error": "Empty or invalid schedule provided"}), 400
+
+        series = get_series(user_id)
+        pred_series = m_eval_devices(series=series, schedule=normalized, week=False)
+        return jsonify(pred_series)
+
+    except ValueError:
+        return jsonify({"error": "Invalid user ID"}), 400
+    except Exception as e:
+        # Return a JSON error instead of an HTML traceback
+        return jsonify({"error": str(e)}), 500
+
 
 location_data = regional_consumption()
 @app.route("/consumption")
