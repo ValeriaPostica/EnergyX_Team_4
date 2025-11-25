@@ -33,8 +33,8 @@ def load_migrations():
                 migration TEXT,
                 val TEXT
             );
-            CREATE SCHEMA IF NOT EXISTS interpolated;
-            SET search_path TO interpolated;
+            -- CREATE SCHEMA IF NOT EXISTS interpolated;
+            -- SET search_path TO interpolated;
                 ''')
     cur.execute("SELECT migration FROM migrations.applied ORDER BY migration")
     applied_migs = cur.fetchall()
@@ -49,3 +49,6 @@ def load_migrations():
         cur.execute(file_content)
         conn.commit()
     conn.close()
+
+if __name__ == "__main__":
+    load_migrations()
