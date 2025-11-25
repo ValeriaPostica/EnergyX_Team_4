@@ -28,7 +28,6 @@ from leaderBoard import (
 from dotenv import load_dotenv
 load_dotenv()
 
-
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 IS_PROD=os.getenv("IS_PROD").lower() == "true"

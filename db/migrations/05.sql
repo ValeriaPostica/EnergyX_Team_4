@@ -4,5 +4,6 @@ create table users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL,
-    smart_meter_id INT
+    smart_meter_id INT,
+    FOREIGN KEY (smart_meter_id) REFERENCES contour(contour_id)
 );

@@ -10,5 +10,6 @@ CREATE OR REPLACE VIEW v_data AS
 	       l.lon
     FROM contour c
     JOIN contour_data cd on c.contour_id = cd.contour_id
-    JOIN locations l on l.location_id = c.location_id;
+    JOIN locations l on l.location_id = c.location_id
+    ORDER BY contour_id, clock
 
