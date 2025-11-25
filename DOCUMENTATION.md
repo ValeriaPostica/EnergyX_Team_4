@@ -129,6 +129,72 @@ flask run
 
 Note: `run.py` tries to detect the venv and will use the venv's `flask` executable when available. Using `run.py` avoids manual FLASK_APP handling in many cases.
 
+## How to run mobile version
+
+Follow these in order whenever you need the Android build to talk to your local backend.
+
+1. **Start backend stack**
+	```powershell
+	cd EnergyX_Team_4
+	.\.venv\Scripts\Activate.ps1
+	cd backend\api
+	flask run
+	```
+	Leave the window open; Flask must stay running on port 5000.
+
+2. **(Optional) Mock IoT server**
+	```powershell
+	cd EnergyX_Team_4\frontend
+	npm install    # first time only
+	npm run server
+	```
+	Provides `/api/status` on port 4000 for the Smart House screen.
+
+3. **Point frontend to accessible hosts**
+	Create `frontend/src/config.js` so components import shared URLs:
+	```javascript
+	export const API_BASE_URL = "http://10.0.2.2:5000"; // use LAN IP for a real device
+	export const IOT_BASE_URL = "http://10.0.2.2:4000";
+	```
+	Replace direct `http://localhost:5000` / `4000` usage with these constants.
+
+4. **Allow cleartext HTTP in Android**
+	Edit `frontend/android/app/src/main/AndroidManifest.xml` `<application>` tag:
+	```xml
+	<application
+		 android:usesCleartextTraffic="true"
+		 ...>
+	```
+
+5. **Build web assets and sync Capacitor**
+	```powershell
+	cd EnergyX_Team_4\frontend
+	npm run build
+	npx cap sync android
+	```
+
+6. **Expose backend ports to emulator**
+	Ensure an emulator or USB-debuggable device is connected, then:
+	```powershell
+	adb devices          # confirms the target is visible
+	adb reverse tcp:5000 tcp:5000
+	adb reverse tcp:4000 tcp:4000
+	```
+	Skip the `adb reverse` commands when using a physical device with LAN URLs.
+
+7. **Open Android Studio**
+	```powershell
+	npx cap open android
+	```
+	Pick an emulator/device in Android Studio and click Run. Verify API requests in Logcat and the Flask console.
+
+8. **Live reload (optional)**
+	```powershell
+	npm run dev
+	npx cap run android -l --external --host <PC-IP>
+	```
+	Keeps the React app updating while the native shell stays open.
+
 ## Database and connection
 - The project uses a Postgres database schema located under `db/`. Start it with:
 ```powershell
