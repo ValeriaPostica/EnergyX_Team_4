@@ -33,8 +33,8 @@ def load_migrations():
                 migration TEXT,
                 val TEXT
             );
-            CREATE SCHEMA IF NOT EXISTS interpolated;
-            SET search_path TO interpolated;
+            --CREATE SCHEMA IF NOT EXISTS public;
+            --SET search_path TO public;
                 ''')
     cur.execute("SELECT migration FROM migrations.applied ORDER BY migration")
     applied_migs = cur.fetchall()
@@ -45,7 +45,13 @@ def load_migrations():
         print("will be applied",m)
         cur = conn.cursor()
         file_content = open(m).read()
-        cur.execute("INSERT INTO migrations.applied (migration,val) VALUES (%s,%s)", (os.path.basename(m),file_content,))
-        cur.execute(file_content)
-        conn.commit()
+        try:
+            cur.execute("INSERT INTO migrations.applied (migration,val) VALUES (%s,%s)", (os.path.basename(m),file_content,))
+            cur.execute(file_content)
+            conn.commit()
+        except Exception as e:
+            print(f"Error applying migration: {e}")
     conn.close()
+
+if __name__ == "__main__":
+    load_migrations()
