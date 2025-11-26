@@ -26,7 +26,7 @@ load_dotenv()
 
 os.environ["LANGCHAIN_TRACING"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_PROJECT"] = "pr-frosty-stair-51"
+os.environ["LANGCHAIN_PROJECT"] = "pr-reflecting-diploma-100"
 llm = None
 try:
 	llm = init_chat_model("gpt-4o-mini", model_provider="openai")
