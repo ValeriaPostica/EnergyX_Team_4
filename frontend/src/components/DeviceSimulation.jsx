@@ -237,6 +237,20 @@ const DeviceSimulation = ({ userId: propUserId }) => {
         message,
       });
 
+      try {
+        await fetchWithAuth("http://localhost:5000/simple_log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            line: `4)Device simulation schedule=${JSON.stringify(sanitized)}; baseline_cost=${baseCost.toFixed(
+              2
+            )} ${CURRENCY}; simulated_cost=${simCost.toFixed(2)} ${CURRENCY}`,
+          }),
+        });
+      } catch (logErr) {
+        console.warn("Failed to write simulation log", logErr);
+      }
+
       setStatusMessage("Simulation ready.");
     } catch (err) {
       console.error("Device simulation failed", err);
