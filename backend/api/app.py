@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
+from pydantic import BaseModel, ValidationError
 from auth import auth_bp
 import aiProvider
 import aiCustomer
@@ -100,6 +101,9 @@ def tariff(current_user):
 def get_regions(current_user):
     return calc_timeseries_from_db()
 
+class OpenAiMessage(BaseModel):
+    message: str
+
 @app.route("/ai/chat", methods=['POST'])
 @token_required
 def chat_q(current_user):
@@ -110,7 +114,14 @@ def chat_q(current_user):
         return jsonify({"error": "Missing 'message' field"}), 400
     
     message = json_data["message"]
-    return {"response": aiCustomer.get_ai_response(message)}
+    try:
+        return {"response": aiCustomer.get_ai_response(message)}
+    except ValidationError:
+        return jsonify({"error": "Invalid input format"}), 400
+    except Exception as e:
+        print(f"Error in /ai/chat : {e}")
+        return jsonify({"error": "Something went wrong"}), 500
+
 
 @app.route("/pred/<user_id>")
 @token_required
@@ -217,7 +228,7 @@ def get_location_consumption(current_user):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route("/color", methods=['POST'])
+@app.route("/color", methods=['POST']) #Why this is POST?, This feature is not compleate
 @token_required
 def give_color(current_user):
     try:
@@ -242,13 +253,13 @@ response = aiProvider.get_ai_recommendations(client, location_data)
 def get_ai_resp(current_user):
     return response
 
-@app.route("/simple_log", methods=["POST"])
+@app.route("/simple_log", methods=["POST"]) #Why?
 @token_required
 def route_simple_log(current_user):
     return simple_log()
 
 
-@app.route("/simple_log/clear", methods=["POST"])
+@app.route("/simple_log/clear", methods=["POST"]) #Why?
 @token_required
 def route_simple_log_clear(current_user):
     return simple_log_clear()
