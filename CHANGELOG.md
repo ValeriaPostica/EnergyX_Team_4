@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.7.1] - 2025-11-25
+### Tooling & Configuration
+- Refined Android runtime setup: centralized API host constants, adjusted cleartext traffic policy, validated Gradle/Capacitor sync, and verified `adb reverse` routing so the mobile build can reach local services reliably.
+### Documentation
+- Captured the new Android workflow and supporting commands in `DOCUMENTATION.md`, covering backend startup, mock IoT server, build/sync steps, port forwarding, and Android Studio launch.
+
+## [1.7.0] - 2025-11-1
+### Added and updated
+- Added `/pred/simulate` backend improvements: accept URL-encoded JSON schedules, validate tuples, and surface consistent JSON errors when payloads are invalid.
+- Introduced device-aware forecasting totals so simulations align with the LSTM adjustments for thermostat, AC, lighting, and saver modes.
+
 ## [1.6.0] - 2025-11-1
 ### Added and updated
 - Introduced smart house points system
