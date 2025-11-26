@@ -19,7 +19,7 @@ cd ..
 cd db
 docker compose up -d
 cd ..
-python3 run.py
+python run.py
 
 ## Run
 .venv\Scripts\Activate.ps1
@@ -40,6 +40,8 @@ docker compose down
 - Ignore `db/test.py`, `db/series.py` and `get_day_data.py` — they were created for quick local tests and can be removed if you don't need them.
 - I added IoT server activation in `run.py` for the Smart House page. The page runs a short simulation (about 1 minute) demonstrating how temperature changes affect energy usage.
 - Thus now I am using the new data for costumers and also made Smart House simulation.
+- Added a "Device Simulation" workflow that combines `/pred/simulate` on the backend with a new frontend page so consumers can schedule devices, compare baseline versus simulated demand, and estimate cost impact in MDL.
+- Extended the simple log handler to persist numbered entries `0)` through `4)` so RAG-aware assistants can read the latest device simulation summary alongside the existing monitoring events.
 
 ## Changes made during recent edits(more small and detailed)
 The following files were modified or added while working on the project. This list helps you understand what changed and how to run/verify the edits.
@@ -57,6 +59,12 @@ The following files were modified or added while working on the project. This li
 	- Added helper scripts that fetch hourly `energy_import` rows for a contour id and print/return the series.
 - frontend/src/components/HourlyConsumption.jsx
 	- Fixed a client-side bug: parse fetch response JSON, guard and pad/truncate arrays to 24 values, and adjusted labels to 24 hours.
+	- frontend/src/components/DeviceSimulation.jsx & DeviceSimulation.css
+	- New consumer-facing page for configuring device intervals, running `/pred/simulate`, and visualizing results against the baseline forecast.
+- backend/api/app.py (`/pred/simulate`)
+	- Accepts URL-encoded JSON schedules, normalizes them to tuples, and returns clean JSON errors for invalid payloads.
+- backend/api/simple_log_handler.py
+	- Records up to five numbered log categories so the new simulation summary (`4)Device simulation ...`) is preserved for retrieval-augmented reasoning.
 - frontend/package.json
 	- Fixed duplicate `dev` script. Added `server` and `server:dev` scripts so the Node server and vite dev server can be run separately.
 - run.py

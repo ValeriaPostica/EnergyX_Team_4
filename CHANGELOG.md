@@ -11,6 +11,14 @@
 - Added `/pred/simulate` backend improvements: accept URL-encoded JSON schedules, validate tuples, and surface consistent JSON errors when payloads are invalid.
 - Introduced device-aware forecasting totals so simulations align with the LSTM adjustments for thermostat, AC, lighting, and saver modes.
 
+### Frontend experience
+- Created a new "Device Simulation" consumer page with configurable device rows, cost deltas, and side-by-side forecast charts.
+- Connected navigation and app router updates so the new page is available from the sidebar on logged-in consumer accounts.
+
+### RAG & logging enhancements
+- Extended `simple_log_handler` to persist numbered entries up to `4)` ensuring the device simulation summary is stored alongside existing monitoring lines.
+- Updated simulation flow to emit a structured `4)Device simulation ...` log entry, enabling retrieval workflows to ingest the latest scenario insights.
+
 ## [1.6.0] - 2025-11-1
 ### Added and updated
 - Introduced smart house points system

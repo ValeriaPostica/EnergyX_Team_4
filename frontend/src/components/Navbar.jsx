@@ -21,7 +21,7 @@ const Navbar = forwardRef(({ setCurrentPage, currentPage, role }, ref) => {
       
           <a className="navbar-brand" href="#" onClick={() => handleNavClick("home")}>
             <i className="bi bi-lightning-charge-fill me-2"></i>
-            EnergiX
+            EnergyX
           </a>
 
           <button className="navbar-toggler" type="button" onClick={handleToggle}>
@@ -47,6 +47,7 @@ const Navbar = forwardRef(({ setCurrentPage, currentPage, role }, ref) => {
               <li onClick={() => handleNavClick("tariff")}>Tariff Calculator</li>
               <li onClick={() => handleNavClick("leaderboard")}>Leaderboard</li>
               <li onClick={() => handleNavClick("smarthouse")}>Smart House</li>
+              <li onClick={() => handleNavClick("device-simulation")}>Device Simulation</li>
             </>
           )}
 

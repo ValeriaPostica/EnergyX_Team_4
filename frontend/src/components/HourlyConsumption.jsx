@@ -40,6 +40,20 @@ const HourlyConsumption = () => {
         let today = 7;
         const y_res = await fetchWithAuth(`http://localhost:5000/diff/${userId}/${yesterday}`);
         const t_res = await fetchWithAuth(`http://localhost:5000/diff/${userId}/${today}`);
+        
+        // to delete
+        const example_schedule = [
+          ["thermostat", 12, 15],
+          ["conditioner", 13, 16],
+          ["light", 8, 20],
+          ["energy_saving", 18, 21]
+        ];
+        const scheduleParam = encodeURIComponent(JSON.stringify(example_schedule));
+        const pred_res = await fetchWithAuth(`http://localhost:5000/pred/simulate/${userId}/${scheduleParam}`);
+        const pred_json = await pred_res.json();
+        console.log("AAAA");
+        console.log(pred_json);
+        // end to delete
         let y_arr = await y_res.json();
         let t_arr = await t_res.json();
 

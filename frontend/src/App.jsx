@@ -14,6 +14,7 @@ import Chatbot from './components/Chatbot';
 import ProviderDashboard from "./components/ProviderDashboard";
 import TopConsumers from "./components/TopConsumers";
 import SmartHouse from "./components/SmartHouse"; 
+import DeviceSimulation from "./components/DeviceSimulation";
 
 function App() {
   const [currentPage, setCurrentPage] = useState('auth');
@@ -56,6 +57,8 @@ function App() {
         return <Leaderboard />;
       case 'smarthouse':
         return <SmartHouse userId={userId} />;
+      case 'device-simulation':
+        return <DeviceSimulation userId={userId} />;
       case "provider-dashboard":
         return <ProviderDashboard setCurrentPage={setCurrentPage} userId={userId} />;
       case "top-consumers":

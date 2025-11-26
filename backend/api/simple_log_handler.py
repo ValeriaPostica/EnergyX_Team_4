@@ -60,16 +60,17 @@ def simple_log():
         all_lines.append(raw_line.rstrip("\n"))
 
         # Pattern: optional leading whitespace, digit 0-9, then ')' then content
-        pattern = re.compile(r"^\s*([0-9])\)\s*(.*)$")
-        latest = {"0": "", "1": "", "2": "", "3": ""}
+        pattern = re.compile(r"^\s*([0-9]+)\)\s*(.*)$")
+        base_indices = {"0", "1", "2", "3", "4"}
+        latest: dict[str, str] = {key: "" for key in base_indices}
 
         # Walk through lines in order, update latest for matches
         for ln in all_lines:
             m = pattern.match(ln)
             if m:
                 idx = m.group(1)
-                if idx in latest:
-                    latest[idx] = m.group(2)
+                base_indices.add(idx)
+                latest[idx] = m.group(2)
 
         # Backup existing file before writing
         try:
@@ -83,12 +84,12 @@ def simple_log():
         fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(SIMPLE_LOG_PATH))
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as tmpf:
-                for i in ["0", "1", "2", "3"]:
-                    val = latest.get(i, "")
+                for key in sorted(base_indices, key=lambda v: int(v)):
+                    val = latest.get(key, "")
                     if val:
-                        tmpf.write(f"{i}){val}\n")
+                        tmpf.write(f"{key}){val}\n")
                     else:
-                        tmpf.write(f"{i})\n")
+                        tmpf.write(f"{key})\n")
             # atomic replace
             os.replace(tmp_path, SIMPLE_LOG_PATH)
         finally:
