@@ -294,9 +294,96 @@ def route_smart_house_points():
         "message": f"You {action} {abs(earned)} {points_text}! Total: {total} points"
     })
 """
+
+# Leaderboard endpoints
+@app.route("/create-leaderboard-table", methods=["POST"])
+def create_leaderboard_table():
+    """Create leaderboard table via Python"""
+    try:
+        from auth import engine, text
+        
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS leaderboard (
+                    username VARCHAR(100) PRIMARY KEY,
+                    points INTEGER DEFAULT 0,
+                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.commit()
+            
+            return jsonify({"message": "Leaderboard table created successfully"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/check-leaderboard-table", methods=["GET"])
+def check_leaderboard_table():
+    """Check if leaderboard table exists"""
+    try:
+        from auth import engine, text
+        
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'leaderboard'
+                )
+            """))
+            exists = result.fetchone()[0]
+            
+            return jsonify({"table_exists": exists})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/leaderboard/init-existing", methods=["POST"])
+def init_existing_users():
+    """Add all existing users to leaderboard (run this once)"""
+    try:
+        from auth import engine, text
+        from leaderBoard import update_user_points
+        
+        with engine.connect() as conn:
+            # Get all users from users table
+            result = conn.execute(text("SELECT username FROM users"))
+            users = result.fetchall()
+            
+            added_users = []
+            for user in users:
+                username = user[0]
+                # Add each user to leaderboard with 0 points
+                update_user_points(username, 0)
+                added_users.append(username)
+            
+            return jsonify({
+                "message": f"Added {len(users)} existing users to leaderboard",
+                "users": added_users
+            })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Main leaderboard endpoints
 @app.route("/leaderboard", methods=["GET"])
 def route_leaderboard():
+    """Get the current leaderboard"""
+    from leaderBoard import get_leaderboard
     return jsonify({"leaderboard": get_leaderboard()})
+
+@app.route("/points/update", methods=["POST"])
+@token_required
+def update_points(current_user):
+    """Update points for current user (for testing)"""
+    from leaderBoard import update_user_points
+    data = request.get_json()
+    points = data.get('points', 0)
+    
+    new_total = update_user_points(current_user['username'], points)
+    
+    return jsonify({
+        "message": "Points updated",
+        "username": current_user['username'],
+        "points_added": points,
+        "total_points": new_total
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
