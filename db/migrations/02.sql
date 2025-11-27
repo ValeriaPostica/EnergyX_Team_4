@@ -1,0 +1,14 @@
+DROP TABLE IF EXISTS locations CASCADE;
+CREATE TABLE locations (
+    location_id SERIAL PRIMARY KEY,
+    name VARCHAR(32) NOT NULL,
+    lat REAL NOT NULL DEFAULT 0,
+    lon REAL NOT NULL DEFAULT 0
+);
+
+ALTER TABLE contour
+ADD COLUMN location_id INT DEFAULT NULL,
+ADD CONSTRAINT fk_location
+	FOREIGN KEY (location_id)
+	REFERENCES locations(location_id)
+	ON DELETE SET NULL;
