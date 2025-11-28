@@ -1,4 +1,6 @@
+from typing import Literal
 from flask import Blueprint, request, jsonify
+from pydantic import BaseModel, ValidationError
 from sqlalchemy import create_engine, text
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
@@ -72,6 +74,20 @@ def token_required(f):
 
 	return decorated
 
+
+class RegistrationData(BaseModel):
+	"""
+	This for validating registration data if all the fields are present and correctly formatted
+	"""
+
+	username: str
+	email: str
+	password: str
+	role: Literal['provider', 'consumer']
+	smart_meter_id: int
+
+
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
 	"""Register a new user"""
@@ -80,30 +96,38 @@ def register():
 	if not data:
 		return jsonify({'error': 'No data provided'}), 400
 
-	username = data.get('username')
-	email = data.get('email')
-	password = data.get('password')
-	role = data.get('role')
-	smart_meter_id = data.get('smart_meter_id')
+
+	regData = None
+
+	try:
+		regData = RegistrationData(
+			username = data.get('username'),
+			email = data.get('email'),
+			password = data.get('password'),
+			role = data.get('role'),
+			smart_meter_id = data.get('smart_meter_id')
+		)
+	except ValidationError:
+		return jsonify({'error': 'Invalid input format'}), 400
 
 	#check fields
-	if not username:
+	if not regData.username:
 		return jsonify({'error': 'Username is required'}), 400
-	if not email:
+	if not regData.email:
 		return jsonify({'error': 'Email is required'}), 400
-	if not password:
+	if not regData.password:
 		return jsonify({'error': 'Password is required'}), 400
-	if not role:
+	if not regData.role:
 		return jsonify({'error': 'Role is required'}), 400
-	if not smart_meter_id:
+	if not regData.smart_meter_id:
 		return jsonify({'error': 'Smart meter ID is required'}), 400
 
 	#validate email format
-	if not validate_email(email):
+	if not validate_email(regData.email):
 		return jsonify({'error': 'Invalid email format'}), 400
 
 	#validate role
-	if not validate_role(role):
+	if not validate_role(regData.role):
 		return jsonify({'error': 'Role must be either "provider" or "consumer"'}), 400
 
 	try:
@@ -111,7 +135,7 @@ def register():
 			#checking if username already exists
 			result = conn.execute(
 				text("SELECT id FROM users WHERE username = :username"),
-				{"username": username}
+				{"username": regData.username}
 			)
 			if result.fetchone():
 				return jsonify({'error': 'Username already exists'}), 400
@@ -119,13 +143,13 @@ def register():
 			#checking if email already exists
 			result = conn.execute(
 				text("SELECT id FROM users WHERE email = :email"),
-				{"email": email}
+				{"email": regData.email}
 			)
 			if result.fetchone():
 				return jsonify({'error': 'Email already exists'}), 400
 
 			#hash the password
-			hashed_password = generate_password_hash(password)
+			hashed_password = generate_password_hash(regData.password)
 
 			#insert new user
 			conn.execute(
@@ -134,11 +158,11 @@ def register():
 					VALUES (:username, :email, :password, :role, :smart_meter_id)
 				"""),
 				{
-					"username": username,
-					"email": email,
+					"username": regData.username,
+					"email": regData.email,
 					"password": hashed_password,
-					"role": role,
-					"smart_meter_id": smart_meter_id
+					"role": regData.role,
+					"smart_meter_id": regData.smart_meter_id
 				}
 			)
 			conn.commit()
@@ -148,8 +172,8 @@ def register():
 
 			return jsonify({
 				'message': 'User registered successfully',
-				'username': username,
-				'role': role
+				'username': regData.username,
+				'role': regData.role
 			}), 201
 
 	except Exception as e:

@@ -188,6 +188,9 @@ Percentage of CO₂ reduction achieved: ${CO2_REDUCTION}%`;
                 <li>
                   <i className="bi bi-bell text-danger me-2"></i> Early Alerts
                 </li>
+                <li>
+                  <i className="bi bi-diagram-3 text-info me-2"></i> Different scenarios simulations
+                </li>
               </ul>
             </div>
           </div>

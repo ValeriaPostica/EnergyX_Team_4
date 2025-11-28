@@ -5,15 +5,16 @@ from typing import Optional
 # Usage: python series.py <contour_id>
 engine = create_engine("postgresql://postgres:11111@localhost:5433/postgres")
 
+
 def get_all_keys():
-    sql = text("SELECT contour_id FROM interpolated.contour ORDER BY contour_id ASC")
+    sql = text("SELECT contour_id FROM public.contour ORDER BY contour_id ASC")
     with engine.connect() as conn:
         result = conn.execute(sql).fetchall()
     #transform from row to list[int]
     result = [r[0] for r in result]
     return list(result)
 
-def fetch_hourly_imports(contour_id: int, day: Optional[int] = None, schema: Optional[str] = ""):
+def fetch_hourly_imports(contour_id: int, day: Optional[int] = None, schema: Optional[str] = "public"):
     """Return rows (contour_id, clock, energy_import) for the given contour_id
     where the timestamp is at whole hours (minute = 0). Results are ordered by clock ascending.
     """
@@ -66,7 +67,7 @@ def get_series(cid: int, day: Optional[int] = None) -> list[float]:
     diffs = diff(series)
     return diffs
 
-def general_info(schema: Optional[str] = ""):
+def general_info(schema: Optional[str] = "public"):
     table = f"{schema}.contour_data" if schema else "contour_data"
     sql = text(
         f"SELECT energy_import FROM {table}"
@@ -90,7 +91,7 @@ def general_info(schema: Optional[str] = ""):
     return current_usage, int(number_of_contours)
 
 def regional_consumption():
-    table = f"interpolated.contour c JOIN interpolated.locations l ON c.location_id = l.location_id JOIN interpolated.contour_data cd ON c.contour_id = cd.contour_id"
+    table = f"public.contour c JOIN public.locations l ON c.location_id = l.location_id JOIN public.contour_data cd ON c.contour_id = cd.contour_id"
     sql = text(
         f"SELECT l.name, cd.energy_import FROM {table} ORDER BY l.name, cd.clock ASC"
     )
@@ -119,7 +120,7 @@ def regional_consumption():
     return location_data
 
 
-def calc_timeseries_from_db(schema: Optional[str] = "interpolated"):
+def calc_timeseries_from_db(schema: Optional[str] = "public"):
     """Return a structure like calc.json built from the database.
 
     Output format:
@@ -178,7 +179,7 @@ def calc_timeseries_from_db(schema: Optional[str] = "interpolated"):
     # wrap moldova under a dict as in calc.json
     return [per_location, {"moldova": moldova_agg}]
 
-def get_series_country(country: str, schema: Optional[str] = "interpolated") -> list[float]:
+def get_series_country(country: str, schema: Optional[str] = "public") -> list[float]:
     """Return a structure like calc.json built from the database.
 
     Output format:

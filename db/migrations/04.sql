@@ -1,0 +1,36 @@
+INSERT INTO locations (name, lat, lon)
+	VALUES
+	('Chisinau', 47.0166, 28.8499),
+	('Orhei', 47.3792, 28.8239),
+	('Tiraspol', 46.8406, 29.6083),
+	('Balti', 47.7618, 27.919),
+	('Soroca', 48.1565, 28.2995),
+	('Cricova', 47.1352, 28.7611),
+	('Vadul lui Voda', 47.1287, 29.0838),
+	('Comrat', 46.3005, 28.6601),
+	('Cahul', 45.9084, 28.196),
+	('Edinet', 48.1718, 27.3079),
+	('Ungheni', 47.2106, 27.8006),
+	('Rezina', 47.7481, 29.0444),
+	('Hincesti', 46.8317, 28.5878),
+	('Floresti', 47.8917, 28.2992),
+	('Stefan Voda', 46.5156, 29.6633);
+
+-- BEGIN;
+-- 	DO $$
+-- DECLARE
+--     r RECORD;
+--     random_id INT;
+-- BEGIN
+--     FOR r IN SELECT contour_id FROM contour LOOP
+--         SELECT location_id INTO random_id
+--         FROM locations
+--         ORDER BY random()
+--         LIMIT 1;
+--
+--         UPDATE contour
+--         SET location_id = random_id
+--         WHERE contour_id = r.contour_id;
+--     END LOOP;
+-- END$$;
+-- SELECT * FROM contour LIMIT 10;

@@ -19,7 +19,7 @@ cd ..
 cd db
 docker compose up -d
 cd ..
-python3 run.py
+python run.py
 
 ## Run
 .venv\Scripts\Activate.ps1
@@ -40,6 +40,8 @@ docker compose down
 - Ignore `db/test.py`, `db/series.py` and `get_day_data.py` — they were created for quick local tests and can be removed if you don't need them.
 - I added IoT server activation in `run.py` for the Smart House page. The page runs a short simulation (about 1 minute) demonstrating how temperature changes affect energy usage.
 - Thus now I am using the new data for costumers and also made Smart House simulation.
+- Added a "Device Simulation" workflow that combines `/pred/simulate` on the backend with a new frontend page so consumers can schedule devices, compare baseline versus simulated demand, and estimate cost impact in MDL.
+- Extended the simple log handler to persist numbered entries `0)` through `4)` so RAG-aware assistants can read the latest device simulation summary alongside the existing monitoring events.
 
 ## Changes made during recent edits(more small and detailed)
 The following files were modified or added while working on the project. This list helps you understand what changed and how to run/verify the edits.
@@ -57,6 +59,12 @@ The following files were modified or added while working on the project. This li
 	- Added helper scripts that fetch hourly `energy_import` rows for a contour id and print/return the series.
 - frontend/src/components/HourlyConsumption.jsx
 	- Fixed a client-side bug: parse fetch response JSON, guard and pad/truncate arrays to 24 values, and adjusted labels to 24 hours.
+	- frontend/src/components/DeviceSimulation.jsx & DeviceSimulation.css
+	- New consumer-facing page for configuring device intervals, running `/pred/simulate`, and visualizing results against the baseline forecast.
+- backend/api/app.py (`/pred/simulate`)
+	- Accepts URL-encoded JSON schedules, normalizes them to tuples, and returns clean JSON errors for invalid payloads.
+- backend/api/simple_log_handler.py
+	- Records up to five numbered log categories so the new simulation summary (`4)Device simulation ...`) is preserved for retrieval-augmented reasoning.
 - frontend/package.json
 	- Fixed duplicate `dev` script. Added `server` and `server:dev` scripts so the Node server and vite dev server can be run separately.
 - run.py
@@ -128,6 +136,72 @@ flask run
 ```
 
 Note: `run.py` tries to detect the venv and will use the venv's `flask` executable when available. Using `run.py` avoids manual FLASK_APP handling in many cases.
+
+## How to run mobile version
+
+Follow these in order whenever you need the Android build to talk to your local backend.
+
+1. **Start backend stack**
+	```powershell
+	cd EnergyX_Team_4
+	.\.venv\Scripts\Activate.ps1
+	cd backend\api
+	flask run
+	```
+	Leave the window open; Flask must stay running on port 5000.
+
+2. **(Optional) Mock IoT server**
+	```powershell
+	cd EnergyX_Team_4\frontend
+	npm install    # first time only
+	npm run server
+	```
+	Provides `/api/status` on port 4000 for the Smart House screen.
+
+3. **Point frontend to accessible hosts**
+	Create `frontend/src/config.js` so components import shared URLs:
+	```javascript
+	export const API_BASE_URL = "http://10.0.2.2:5000"; // use LAN IP for a real device
+	export const IOT_BASE_URL = "http://10.0.2.2:4000";
+	```
+	Replace direct `http://localhost:5000` / `4000` usage with these constants.
+
+4. **Allow cleartext HTTP in Android**
+	Edit `frontend/android/app/src/main/AndroidManifest.xml` `<application>` tag:
+	```xml
+	<application
+		 android:usesCleartextTraffic="true"
+		 ...>
+	```
+
+5. **Build web assets and sync Capacitor**
+	```powershell
+	cd EnergyX_Team_4\frontend
+	npm run build
+	npx cap sync android
+	```
+
+6. **Expose backend ports to emulator**
+	Ensure an emulator or USB-debuggable device is connected, then:
+	```powershell
+	adb devices          # confirms the target is visible
+	adb reverse tcp:5000 tcp:5000
+	adb reverse tcp:4000 tcp:4000
+	```
+	Skip the `adb reverse` commands when using a physical device with LAN URLs.
+
+7. **Open Android Studio**
+	```powershell
+	npx cap open android
+	```
+	Pick an emulator/device in Android Studio and click Run. Verify API requests in Logcat and the Flask console.
+
+8. **Live reload (optional)**
+	```powershell
+	npm run dev
+	npx cap run android -l --external --host <PC-IP>
+	```
+	Keeps the React app updating while the native shell stays open.
 
 ## Database and connection
 - The project uses a Postgres database schema located under `db/`. Start it with:

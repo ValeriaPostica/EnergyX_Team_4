@@ -1,19 +1,20 @@
 from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
+from pydantic import BaseModel, ValidationError
 from auth import auth_bp
 import aiProvider
 import aiCustomer
 import os
 import openai
-from model.xlstm_runner import m_eval
+from model.xlstm_runner import m_eval, m_eval_devices
 #from leaderBoard import smart_house_calculator, update_user_points
 from retrieve_data import get_location_color, get_series, general_info, regional_consumption, calc_timeseries_from_db, get_series_country, get_all_keys
 # Commented our lines below and above use ai implementations
 from gauss_tarrif import precompute_gaussian_peak
 from simple_log_handler import simple_log, simple_log_clear
 import json
-
+from migrations import load_migrations
 import hashlib
 
 from auth import auth_bp
@@ -30,6 +31,10 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+IS_PROD=os.getenv("IS_PROD").lower() == "true"
+
+if IS_PROD:
+    load_migrations()
 
 client = None
 
@@ -100,6 +105,9 @@ def tariff(current_user):
 def get_regions(current_user):
     return calc_timeseries_from_db()
 
+class OpenAiMessage(BaseModel):
+    message: str
+
 @app.route("/ai/chat", methods=['POST'])
 @token_required
 def chat_q(current_user):
@@ -110,7 +118,14 @@ def chat_q(current_user):
         return jsonify({"error": "Missing 'message' field"}), 400
     
     message = json_data["message"]
-    return {"response": aiCustomer.get_ai_response(message)}
+    try:
+        return {"response": aiCustomer.get_ai_response(message)}
+    except ValidationError:
+        return jsonify({"error": "Invalid input format"}), 400
+    except Exception as e:
+        print(f"Error in /ai/chat : {e}")
+        return jsonify({"error": "Something went wrong"}), 500
+
 
 @app.route("/pred/<user_id>")
 @token_required
@@ -206,6 +221,56 @@ def pred_location_week(current_user, location_name):
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/pred/simulate/<user_id>/<schedule>")
+@token_required
+def pred_simulate(current_user, user_id, schedule):
+    """Simulate device schedule for a user.
+
+    The `schedule` path parameter may be a URL-encoded JSON array, e.g.
+    %5B%5B%22thermostat%22%2C12%2C15%5D%2C...%5D. We attempt to decode JSON
+    and normalize it to a list of (device, start, end) tuples expected by
+    `m_eval_devices`.
+    """
+    try:
+        # Try to parse schedule as JSON (frontend sends encoded JSON in the path)
+        parsed_schedule = None
+        try:
+            parsed_schedule = json.loads(schedule)
+        except Exception:
+            # If parsing fails, leave as raw string (will be handled below)
+            parsed_schedule = schedule
+
+        # Normalize to list of (device, start, end) tuples
+        normalized = []
+        if isinstance(parsed_schedule, list):
+            for item in parsed_schedule:
+                if (isinstance(item, (list, tuple)) and len(item) >= 3):
+                    try:
+                        device = str(item[0])
+                        start = int(item[1])
+                        end = int(item[2])
+                        normalized.append((device, start, end))
+                    except Exception:
+                        # Skip malformed entries
+                        continue
+        else:
+            # If schedule wasn't JSON/list, return an error to the client
+            return jsonify({"error": "Schedule must be a JSON array of [device, start, end]"}), 400
+
+        if not normalized:
+            return jsonify({"error": "Empty or invalid schedule provided"}), 400
+
+        series = get_series(user_id)
+        pred_series = m_eval_devices(series=series, schedule=normalized, week=False)
+        return jsonify(pred_series)
+
+    except ValueError:
+        return jsonify({"error": "Invalid user ID"}), 400
+    except Exception as e:
+        # Return a JSON error instead of an HTML traceback
+        return jsonify({"error": str(e)}), 500
+
 
 location_data = regional_consumption()
 @app.route("/consumption")
@@ -217,7 +282,7 @@ def get_location_consumption(current_user):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route("/color", methods=['POST'])
+@app.route("/color", methods=['POST']) #Why this is POST?, This feature is not compleate
 @token_required
 def give_color(current_user):
     try:
@@ -242,13 +307,13 @@ response = aiProvider.get_ai_recommendations(client, location_data)
 def get_ai_resp(current_user):
     return response
 
-@app.route("/simple_log", methods=["POST"])
+@app.route("/simple_log", methods=["POST"]) #Why?
 @token_required
 def route_simple_log(current_user):
     return simple_log()
 
 
-@app.route("/simple_log/clear", methods=["POST"])
+@app.route("/simple_log/clear", methods=["POST"]) #Why?
 @token_required
 def route_simple_log_clear(current_user):
     return simple_log_clear()
