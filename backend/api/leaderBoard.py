@@ -4,31 +4,11 @@ from sqlalchemy import create_engine, text
 leaderboard = {
 }
 
-# Database connection - SAME AS AUTH
+# Database connection 
 DATABASE_URL = "postgresql://postgres:11111@localhost:5433/postgres"
 engine = create_engine(DATABASE_URL)
 
 # Global state tracking (simple dictionaries)
-previous_energy_usage = {}
-previous_temperature = {}
-energy_thresholds_crossed = {}
-
-# Points calculation functions
-def calculate_tariff_points(previous_cost: float, estimated_cost: float) -> int:
-    """points = round((Previous Cost - Estimated Current Cost) / 10)"""
-    try:
-        points = round((previous_cost - estimated_cost) / 10)
-        return int(points)
-    except Exception as e:
-        print(f"Error calculating tariff points: {e}")
-        return 0
-from sqlalchemy import create_engine, text
-
-# Database connection - SAME AS AUTH
-DATABASE_URL = "postgresql://postgres:11111@localhost:5433/postgres"
-engine = create_engine(DATABASE_URL)
-
-# Global state tracking (in memory)
 previous_energy_usage = {}
 previous_temperature = {}
 energy_thresholds_crossed = {}

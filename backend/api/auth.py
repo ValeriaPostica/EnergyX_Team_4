@@ -220,3 +220,47 @@ def verify_token(current_user):
 		'valid': True,
 		'user': current_user
 	}), 200
+
+@auth_bp.route('/admin/delete-user', methods=['DELETE'])
+def delete_user():
+    """Delete a user from the system"""
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    username = data.get('username')
+    
+    if not username:
+        return jsonify({'error': 'Username is required'}), 400
+    
+    try:
+        with engine.connect() as conn:
+            # Start transaction
+            with conn.begin():
+                # First, delete from leaderboard
+                leaderboard_result = conn.execute(
+                    text("DELETE FROM leaderboard WHERE username = :username"),
+                    {"username": username}
+                )
+                
+                # Then delete from users
+                users_result = conn.execute(
+                    text("DELETE FROM users WHERE username = :username"),
+                    {"username": username}
+                )
+                
+                if users_result.rowcount > 0:
+                    return jsonify({
+                        'message': f'User {username} deleted successfully',
+                        'leaderboard_entries_deleted': leaderboard_result.rowcount,
+                        'user_entries_deleted': users_result.rowcount
+                    }), 200
+                else:
+                    return jsonify({
+                        'message': f'User {username} not found',
+                        'leaderboard_entries_deleted': leaderboard_result.rowcount
+                    }), 404
+                    
+    except Exception as e:
+        return jsonify({'error': f'Deletion failed: {str(e)}'}), 500
