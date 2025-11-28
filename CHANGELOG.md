@@ -2,7 +2,7 @@
 
 ## [Release: EnergyX v1.8.1]
 **November 27, 2025**
-
+Soon i will add the links to release versions
 We've refined the Android runtime setup and updated our documentation to ensure a smoother mobile development workflow.
 
 *   **Tooling & Configuration:** Refined Android runtime setup: centralized API host constants, adjusted cleartext traffic policy, validated Gradle/Capacitor sync, and verified `adb reverse` routing so the mobile build can reach local services reliably.
