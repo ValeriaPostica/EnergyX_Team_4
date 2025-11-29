@@ -28,7 +28,8 @@ jobs:
       - name: Install test deps
         run: |
           python -m pip install --upgrade pip
-          pip install flask flask-cors sqlalchemy psycopg2-binary pytest
+          pip install -r backend/api/requirements.txt
+          pip install pytest
 
       - name: Run tests
         run: pytest -q
