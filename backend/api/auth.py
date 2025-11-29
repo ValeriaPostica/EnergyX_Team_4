@@ -168,7 +168,7 @@ def register():
 			conn.commit()
 			
 			from leaderBoard import update_user_points
-			update_user_points(username, 0)  # Start with 0 points
+			update_user_points(regData.username, 0)  # Start with 0 points
 
 			return jsonify({
 				'message': 'User registered successfully',

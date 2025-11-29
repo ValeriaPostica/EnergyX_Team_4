@@ -64,15 +64,27 @@ def calculate_smart_house_points(
     
     return points
 
-# Leaderboard functions - USING DATABASE
 def update_user_points(username: str, points: int):
     """Update the points for a given user in the database."""
     try:
         with engine.connect() as conn:
+            # First get user_id from users table
+            user_result = conn.execute(
+                text("SELECT id FROM users WHERE username = :username"),
+                {"username": username}
+            )
+            user = user_result.fetchone()
+            
+            if not user:
+                print(f"User {username} not found in users table")
+                return 0
+                
+            user_id = user[0]
+            
             # Check if user exists in leaderboard
             result = conn.execute(
-                text("SELECT points FROM leaderboard WHERE username = :username"),
-                {"username": username}
+                text("SELECT points FROM leaderboard WHERE user_id = :user_id"),
+                {"user_id": user_id}
             )
             existing = result.fetchone()
             
@@ -80,31 +92,34 @@ def update_user_points(username: str, points: int):
                 # Update existing points
                 new_points = existing[0] + points
                 conn.execute(
-                    text("UPDATE leaderboard SET points = :points, last_updated = CURRENT_TIMESTAMP WHERE username = :username"),
-                    {"points": new_points, "username": username}
+                    text("UPDATE leaderboard SET points = :points, last_updated = CURRENT_TIMESTAMP WHERE user_id = :user_id"),
+                    {"points": new_points, "user_id": user_id}
                 )
             else:
                 # Insert new user
                 new_points = points
                 conn.execute(
-                    text("INSERT INTO leaderboard (username, points) VALUES (:username, :points)"),
-                    {"username": username, "points": new_points}
+                    text("INSERT INTO leaderboard (user_id, points) VALUES (:user_id, :points)"),
+                    {"user_id": user_id, "points": new_points}
                 )
             conn.commit()
             return new_points
     except Exception as e:
         print(f"Error updating leaderboard: {e}")
         return 0
+    
 
 def get_leaderboard():
     """Return the leaderboard sorted by points in descending order."""
     try:
         with engine.connect() as conn:
-            result = conn.execute(
-                text("SELECT username, points FROM leaderboard ORDER BY points DESC")
-            )
+            result = conn.execute(text("""
+                SELECT username, points 
+                FROM v_leaderboard 
+                ORDER BY points DESC
+            """))
             leaderboard_data = result.fetchall()
             return [{"username": user[0], "points": user[1]} for user in leaderboard_data]
     except Exception as e:
-        print(f"Error fetching leaderboard: {e}")
+        print(f"Error fetching leaderboard from v_leaderboard: {e}")
         return []

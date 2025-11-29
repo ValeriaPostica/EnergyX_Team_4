@@ -95,17 +95,16 @@ const [currentUser, setCurrentUser] = useState(null);
 
   // Send a simple log each time the computed cost updates (debounced fetch sets currentCost)
   useEffect(() => {
-    if (currentCost === null || !currentUser) return; // Wait until we have the user
+    if (currentCost === null || !currentUser) return;
 
     let mounted = true;
-
     (async () => {
       try {
         const response = await fetch("http://localhost:5000/calculate/tariff_points", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            user: currentUser, // ✅ FIXED: Use dynamic username
+            user: currentUser, 
             previous_cost: previousCost,
             estimated_cost: currentCost
           }),

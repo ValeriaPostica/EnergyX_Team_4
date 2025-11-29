@@ -360,33 +360,12 @@ def route_smart_house_points():
     })
 """
 
-# Leaderboard endpoints
-@app.route("/create-leaderboard-table", methods=["POST"])
-def create_leaderboard_table():
-    """Create leaderboard table via Python"""
-    try:
-        from auth import engine, text
-        
-        with engine.connect() as conn:
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS leaderboard (
-                    username VARCHAR(100) PRIMARY KEY,
-                    points INTEGER DEFAULT 0,
-                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """))
-            conn.commit()
-            
-            return jsonify({"message": "Leaderboard table created successfully"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @app.route("/check-leaderboard-table", methods=["GET"])
 def check_leaderboard_table():
     """Check if leaderboard table exists"""
     try:
         from auth import engine, text
-        
+
         with engine.connect() as conn:
             result = conn.execute(text("""
                 SELECT EXISTS (
@@ -395,35 +374,61 @@ def check_leaderboard_table():
                 )
             """))
             exists = result.fetchone()[0]
-            
+
             return jsonify({"table_exists": exists})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route("/leaderboard/init-existing", methods=["POST"])
-def init_existing_users():
-    """Add all existing users to leaderboard (run this once)"""
+@app.route("/leaderboard/populate-existing", methods=["POST"])
+def populate_existing_users():
+    """Populate leaderboard table with existing users using user_id"""
     try:
         from auth import engine, text
-        from leaderBoard import update_user_points
         
         with engine.connect() as conn:
-            # Get all users from users table
-            result = conn.execute(text("SELECT username FROM users"))
+            # Get all users with their IDs
+            result = conn.execute(text("SELECT id, username FROM users"))
             users = result.fetchall()
             
-            added_users = []
-            for user in users:
-                username = user[0]
-                # Add each user to leaderboard with 0 points
-                update_user_points(username, 0)
-                added_users.append(username)
+            print(f"DEBUG: Found {len(users)} users to add to leaderboard")
+            
+            added_count = 0
+            existing_count = 0
+            
+            for user_id, username in users:
+                # Check if user already exists in leaderboard
+                existing = conn.execute(
+                    text("SELECT user_id FROM leaderboard WHERE user_id = :user_id"),
+                    {"user_id": user_id}
+                ).fetchone()
+                
+                if existing:
+                    print(f"DEBUG: User {username} already in leaderboard, skipping")
+                    existing_count += 1
+                else:
+                    # Insert new user using user_id
+                    conn.execute(
+                        text("INSERT INTO leaderboard (user_id, points) VALUES (:user_id, 0)"),
+                        {"user_id": user_id}
+                    )
+                    added_count += 1
+                    print(f"DEBUG: Added user {username} (ID: {user_id}) to leaderboard")
+            
+            conn.commit()
+            
+            # Verify the results
+            leaderboard_count = conn.execute(text("SELECT COUNT(*) FROM leaderboard")).fetchone()[0]
             
             return jsonify({
-                "message": f"Added {len(users)} existing users to leaderboard",
-                "users": added_users
+                "message": f"Leaderboard population completed",
+                "users_processed": len(users),
+                "users_added": added_count,
+                "users_already_existed": existing_count,
+                "total_in_leaderboard": leaderboard_count
             })
+            
     except Exception as e:
+        print(f"ERROR in populate-existing: {e}")
         return jsonify({"error": str(e)}), 500
 
 # Main leaderboard endpoints
@@ -440,9 +445,9 @@ def update_points(current_user):
     from leaderBoard import update_user_points
     data = request.get_json()
     points = data.get('points', 0)
-    
+
     new_total = update_user_points(current_user['username'], points)
-    
+
     return jsonify({
         "message": "Points updated",
         "username": current_user['username'],
