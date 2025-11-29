@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Provider Energy Report</title>
+    <style>
+        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 10pt; line-height: 1.4; padding: 20px; }
+        h1, h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-top: 25px; }
+        .header-info { font-size: 9pt; color: #7f8c8d; }
+        .summary-box { 
+            background: #ecf0f1; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin-bottom: 20px; 
+            display: flex;
+            justify-content: space-between;
+        }
+        .summary-item { width: 45%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #bdc3c7; padding: 8px; text-align: left; font-size: 9pt; }
+        th { background-color: #3498db; color: white; }
+        .insight { background-color: #fffacd; border-left: 5px solid #f39c12; padding: 10px; margin-top: 15px; }
+        .chart-container { text-align: center; margin: 30px 0; }
+        /* Image embedding requires a block element */
+        img { max-width: 100%; height: auto; margin-top: 10px; } 
+    </style>
+</head>
+<body>
+    <h1>Energy Consumption Provider Report</h1>
+    
+    <div class="header-info">
+        <p>Report Period: <strong>{{ report_period }}</strong></p>
+        <p>Generated: {{ now() | strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    </div>
+
+    <h2>Summary Metrics</h2>
+    <div class="summary-box">
+        <div class="summary-item">
+            <strong>Total Consumption (kWh):</strong><br>
+            <span style="font-size: 16pt; color: #2980b9;">{{ total_kwh }}</span> kWh
+        </div>
+        <div class="summary-item">
+            <strong>Total Estimated Cost:</strong><br>
+            <span style="font-size: 16pt; color: #e74c3c;">${{ total_cost }}</span>
+        </div>
+    </div>
+
+    <h2>Insights and Recommendations</h2>
+    <div class="insight">
+        <p>{{ insight }}</p>
+    </div>
+
+    <h2>Consumption Over Time</h2>
+    <div class="chart-container">
+        <img src="data:image/png;base64,{{ chart_image }}" alt="Consumption Chart">
+    </div>
+
+    <h2>Top 10 Consumers (By kWh)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Contour ID</th>
+                <th>Total Usage (kWh)</th>
+                <th>Estimated Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for consumer in top_consumers %}
+            <tr>
+                <td>{{ consumer.contour_id }}</td>
+                <td>{{ consumer.kwh | format_number }}</td>
+                <td>${{ consumer.cost | format_number }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h2>Alerts & Incidents</h2>
+    <ul>
+        {% for alert in alerts %}
+            <li style="color: red;">{{ alert }}</li>
+        {% endfor %}
+    </ul>
+    
+</body>
+</html>
