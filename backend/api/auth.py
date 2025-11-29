@@ -13,7 +13,7 @@ auth_bp = Blueprint('auth', __name__)
 
 #db connection
 
-DATABASE_URL = "postgresql://postgres:11111@localhost:5433/postgres"
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:11111@localhost:5433/postgres")
 engine = create_engine(DATABASE_URL)
 
 # secret key for jwt

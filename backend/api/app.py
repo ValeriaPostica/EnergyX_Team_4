@@ -31,7 +31,7 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-IS_PROD=os.getenv("IS_PROD").lower() == "true"
+IS_PROD = str(os.getenv("IS_PROD", "false")).lower() == "true"
 
 if IS_PROD:
     load_migrations()
@@ -39,7 +39,10 @@ if IS_PROD:
 client = None
 
 try:
-    client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    if OPENAI_API_KEY:
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    else:
+        print("Warning: OPENAI_API_KEY not set.")
 except Exception as e:
     print(f"Warning: Could not initialize OpenAI client: {e}")
     
@@ -103,7 +106,11 @@ def tariff(current_user):
 @app.route("/region/all")
 @token_required
 def get_regions(current_user):
-    return calc_timeseries_from_db()
+    try:
+        return calc_timeseries_from_db()
+    except Exception as e:
+        print(f"Error in /region/all: {e}")
+        return jsonify({"error": str(e)}), 500
 
 class OpenAiMessage(BaseModel):
     message: str
@@ -272,7 +279,13 @@ def pred_simulate(current_user, user_id, schedule):
         return jsonify({"error": str(e)}), 500
 
 
-location_data = regional_consumption()
+location_data = {}
+try:
+    location_data = regional_consumption()
+except Exception as e:
+    print(f"Warning: Could not fetch regional consumption: {e}")
+    location_data = {}
+
 @app.route("/consumption")
 @token_required
 def get_location_consumption(current_user):
@@ -301,11 +314,21 @@ def give_color(current_user):
         return jsonify({"error": str(e)}), 500
 
     
-response = aiProvider.get_ai_recommendations(client, location_data)
+response = []
+if client and location_data:
+    try:
+        response = aiProvider.get_ai_recommendations(client, location_data)
+    except Exception as e:
+        print(f"Warning: Could not get AI recommendations: {e}")
+        response = []
+else:
+    print("Warning: Skipping AI recommendations (client or data missing)")
+    response = []
+
 @app.route("/ai")
 @token_required
 def get_ai_resp(current_user):
-    return response
+    return jsonify(response)
 
 @app.route("/simple_log", methods=["POST"]) #Why?
 @token_required

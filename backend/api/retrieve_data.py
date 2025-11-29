@@ -1,9 +1,14 @@
 from sqlalchemy import create_engine, text
 import sys
+import os
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Usage: python series.py <contour_id>
-engine = create_engine("postgresql://postgres:11111@localhost:5433/postgres")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:11111@localhost:5433/postgres")
+engine = create_engine(DATABASE_URL)
 
 
 def get_all_keys():
