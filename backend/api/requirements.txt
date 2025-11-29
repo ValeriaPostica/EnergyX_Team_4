@@ -21,6 +21,7 @@ PyJWT
 matplotlib
 python-dotenv
 
+#Added new dependencies
 flask>=2.0.0
 flask-cors>=3.0.10
 sqlalchemy>=2.0.0
