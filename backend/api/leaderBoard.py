@@ -5,7 +5,8 @@ leaderboard = {
 }
 
 # Database connection 
-DATABASE_URL = "postgresql://postgres:11111@localhost:5433/postgres"
+import os
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:11111@localhost:5433/postgres')
 engine = create_engine(DATABASE_URL)
 
 # Global state tracking (simple dictionaries)
