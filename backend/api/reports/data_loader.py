@@ -1,94 +1,106 @@
 import pandas as pd
 import numpy as np
-import datetime
-import random # slightly varied mock consumer data
+import json
+import os
+import random
 
-# All of this is mock data for now,
+# Helper Function to Load JSON Data
+def _load_json_data(filename):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(current_dir, '..', '..', 'data')
+    file_path = os.path.join(data_dir, filename)
 
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            
+            # If 'processed.json' is a nested list like [[43, 45...]], it gets flattened
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], list):
+                return data[0]
+            
+            # If 'regions_index.json' has a "regions" key
+            if isinstance(data, dict) and "regions" in data:
+                return data["regions"]
+                
+            return data
+    except FileNotFoundError:
+        print(f"Warning: Data file not found at {file_path}. Using empty data.")
+        return []
+    except Exception as e:
+        print(f"Error loading {filename}: {e}")
+        return []
+
+# main function
 def get_report_data(start_date, end_date):
-    MOCK_CONTOUR_IDS = [
-        13836498, 14098248, 14101503, 14101511, 14101513, 
-        14101530, 14101590, 14101593, 14101607, 14101611,
-        14101619, 14212364, 14270112, 14270128, 14270160, 
-        14286724, 14381537, 14381538, 14381539, 14381540
-    ]
+    # Load the list of consumer IDs
+    contour_ids = _load_json_data('device_ids.json') 
+    # Load the usage values (The flat list [[43, 43...]])
+    usage_values = _load_json_data('processed.json') 
+    # Load regions (for display purposes)
+    regions_list = _load_json_data('regions_index.json')
+    # Constants
+    TARIFF_RATE = 0.15  # Currency per kWh
     
-    MOCK_USAGE_VALUES = [43, 43, 43, 45, 45, 44, 44, 47, 47, 44, 44, 44, 44, 43, 43, 45, 45, 45, 45]
+    # Hourly data
+    if not usage_values:
+        # Fallback if file is empty
+        usage_values = [0] * 24 
+
+    num_points = len(usage_values)
     
-    MOCK_REGIONS = [
-        "Balti", "Cahul", "Chisinau", "Comrat", "Cricova", 
-        "Edinet", "Floresti", "Hincesti", "Orhei", "Rezina", 
-        "Soroca", "Stefan Voda", "Tiraspol", "Ungheni", "Vadul lui Voda"
-    ]
-    
-    TARIFF_RATE = 0.10
-        
-    # 1. Reconstruct Time Series (for Charting)
-    # Assuming MOCK_USAGE_VALUES are hourly readings, create a timestamp index
-    num_readings = len(MOCK_USAGE_VALUES)
-    
-    # Ensure start_date is a datetime object for pd.date_range
     try:
         start_dt = pd.to_datetime(start_date)
-    except ValueError:
-        # Fallback if date string is bad
-        start_dt = datetime.datetime.now()
-        
-    timestamps = pd.date_range(start=start_dt, periods=num_readings, freq='H') 
-    
-    # DataFrame for the chart (Total Consumption over Time)
+    except:
+        start_dt = pd.Timestamp.now()
+
+    # Generate timestamps matching the number of data points in processed.json
+    timestamps = pd.date_range(start=start_dt, periods=num_points, freq='H')
+
+    # Create the DataFrame for the Chart
     df_timeseries = pd.DataFrame({
         'timestamp': timestamps,
-        'kwh_total': MOCK_USAGE_VALUES
+        'kwh_total': usage_values
     })
 
-    # 2. Top Consumer Data (NECESSARY ASSUMPTION)
-    # We must arbitrarily assign usage to consumer IDs to satisfy the 'Top 10' metric.
-    
-    consumer_ids = MOCK_CONTOUR_IDS
-    if not consumer_ids or not MOCK_USAGE_VALUES:
-        df_consumers = pd.DataFrame(columns=['contour_id', 'kwh', 'cost'])
-    else:
-        # Use a list of usage values that totals roughly the same as the total usage
-        # and assign a usage value to each consumer ID, slightly randomized
-        total_mock_usage = sum(MOCK_USAGE_VALUES)
-        
-        # Arbitrarily assign consumption to each consumer
-        consumer_kwh_list = [
-            (total_mock_usage / len(consumer_ids)) * (1 + random.uniform(-0.1, 0.5)) 
-            for _ in consumer_ids
-        ]
-        
-        df_consumers = pd.DataFrame({
-            'contour_id': consumer_ids,
-            'kwh': consumer_kwh_list,
-        })
-        df_consumers['cost'] = df_consumers['kwh'] * TARIFF_RATE
-
-
-    # 3. Calculate Totals and Aggregations
-    
-    # The total consumption for the report period is the sum of the time series
-    total_kwh = sum(MOCK_USAGE_VALUES)
+    # Calculate total kWh and total cost
+    total_kwh = sum(usage_values)
     total_cost = total_kwh * TARIFF_RATE
 
-    # 4. Get Top 10 Consumers (Group by ID, sum kwh and cost, sort)
-    
-    # Since we generated one total usage per consumer, the groupby is straightforward
-    top_consumers_agg = df_consumers.groupby('contour_id')[['kwh', 'cost']].sum()
-    
-    top_consumers = (
-        top_consumers_agg.sort_values('kwh', ascending=False)
-        .head(10)
-        .reset_index()
-        .to_dict('records')
-    )
+    # Distribute usage (For Top 10 Table)
+    if not contour_ids:
+        # Fallback if device_ids.json is missing
+        top_consumers = []
+    else:
+        # Average usage per person
+        avg_usage = total_kwh / len(contour_ids)
+        
+        consumer_data = []
+        for cid in contour_ids:
+            # Variation: +/- 30% of average
+            variation = random.uniform(0.7, 1.3) 
+            est_kwh = avg_usage * variation
+            
+            consumer_data.append({
+                'contour_id': cid,
+                'kwh': est_kwh,
+                'cost': est_kwh * TARIFF_RATE
+            })
+        
+        # Convert to DataFrame to easily sort and slice
+        df_consumers = pd.DataFrame(consumer_data)
+        
+        # Sort by kWh descending and take Top 10
+        top_consumers = (
+            df_consumers.sort_values('kwh', ascending=False)
+            .head(10)
+            .to_dict('records')
+        )
 
-    # 5. Return the required components
+    # Return report data 
     return {
-        "df_raw": df_timeseries, # For the chart: timestamp and total kwh
-        "total_kwh": total_kwh,
-        "total_cost": total_cost,
-        "top_consumers": top_consumers, # List of dicts for the table
-        "regions": MOCK_REGIONS # List of regions for the regional average metric
+        "df_raw": df_timeseries,       # Chart Data (real timestamps + real processed values)
+        "total_kwh": total_kwh,        # Real Sum
+        "total_cost": total_cost,      # Calculated Cost
+        "top_consumers": top_consumers,# Estimated distribution based on Real Total
+        "regions": regions_list        # List of regions
     }
