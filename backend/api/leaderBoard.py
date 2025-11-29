@@ -1,14 +1,13 @@
+from sqlalchemy import create_engine, text
+
 # Stored users scores in memory for demonstration purposes
 leaderboard = {
-    "Maria Ionescu": 150,
-    "Ion Georgescu": 140,
-    "Ioana Vasilescu": 135,
-    "Elena Radu": 120,
-    "Gabriel Marinescu": 115,
-    "Ana Dumitrescu": 100,
-    "Vlad Mihăilescu": 95,
-    "Cristina Dobre": 90,
 }
+
+# Database connection 
+import os
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:11111@localhost:5433/postgres')
+engine = create_engine(DATABASE_URL)
 
 # Global state tracking (simple dictionaries)
 previous_energy_usage = {}
@@ -24,109 +23,104 @@ def calculate_tariff_points(previous_cost: float, estimated_cost: float) -> int:
     except Exception as e:
         print(f"Error calculating tariff points: {e}")
         return 0
-"""
+
 def calculate_smart_house_points(
-    user: str,
+    username: str,
     energy_usage: float,
     temperature: float,
     motion: bool,
     energy_saving_mode: bool
 ) -> int:
+    """Calculate points based on smart house metrics"""
     points = 0
     
     # Initialize user state if first time
-    if user not in previous_energy_usage:
-        previous_energy_usage[user] = energy_usage
-        previous_temperature[user] = temperature
-        energy_thresholds_crossed[user] = set()
+    if username not in previous_energy_usage:
+        previous_energy_usage[username] = energy_usage
+        previous_temperature[username] = temperature
+        energy_thresholds_crossed[username] = set()
         return 0
     
-    prev_energy = previous_energy_usage[user]
-    prev_temp = previous_temperature[user]
+    prev_energy = previous_energy_usage[username]
+    prev_temp = previous_temperature[username]
     
-    # Calculate device states
-    thermostat_on = temperature < 20
-    ac_on = temperature > 25
-    lights_on = motion
-    
-    # 1. Energy usage points
-    current_int = int(energy_usage)
-    prev_int = int(prev_energy)
-    
-    # Cross 3kW boundary
-    if energy_usage < 3 and prev_energy >= 3:
-        energy_thresholds_crossed[user] = {current_int}
-    previous_energy_usage: float,
-    thermostat: bool,
-    air_conditioner: bool,
-    lights: bool,
-    energy_saving_mode: bool
-) -> int:
-    points = 0
+    # Your existing smart house points calculation logic here
     # Base rule: 3 kW is normal
-    if previous_energy_usage >= 3 and energy_usage < 3:
+    if prev_energy >= 3 and energy_usage < 3:
         points += 20
-    elif previous_energy_usage < 3 and energy_usage >= 3:
+    elif prev_energy < 3 and energy_usage >= 3:
         points -= 20
 
-
-    # Device rules
-    for device in [thermostat, air_conditioner, lights]:
-        if device:
-            points -= 10   # device ON → minus points
-        else:
-            points += 10   # device OFF → plus points
+    # Device rules (simplified)
+    device_states = [temperature < 20, temperature > 25, motion]  # thermostat, AC, lights
+    for device_on in device_states:
+        points += -10 if device_on else 10
 
     # Energy saving mode rule
-    if energy_saving_mode:
-        points += 10
-    elif energy_usage >= 3 and prev_energy < 3:
-        energy_thresholds_crossed[user] = {current_int}
-        points -= 10
-    
-    # Integer threshold crossings
-    if current_int != prev_int:
-        if energy_usage < 3:
-            # Below 3: earn points for lower integers
-            if current_int < prev_int and current_int not in energy_thresholds_crossed[user]:
-                points += 10
-                energy_thresholds_crossed[user].add(current_int)
-        elif energy_usage > 3:
-            # Above 3: lose for higher, earn for lower
-            if current_int > prev_int and current_int not in energy_thresholds_crossed[user]:
-                points -= 10
-                energy_thresholds_crossed[user].add(current_int)
-            elif current_int < prev_int and current_int not in energy_thresholds_crossed[user]:
-                points += 10
-                energy_thresholds_crossed[user].add(current_int)
-    
-    # 2. Thermostat trigger (19→20)
-    if 19 <= prev_temp < 20 and temperature >= 20:
-        points += 10
-    
-    # 3. Device status points
-    for device_on in [thermostat_on, ac_on, lights_on]:
-        points += -10 if device_on else 10
-    
-    # 4. Energy saving mode (reversed)
     points += 10 if energy_saving_mode else -10
     
     # Update previous states
-    previous_energy_usage[user] = energy_usage
-    previous_temperature[user] = temperature
+    previous_energy_usage[username] = energy_usage
+    previous_temperature[username] = temperature
     
     return points
-"""
-# Leaderboard functions
-def update_user_points(user: str, points: int):
-    """Update the points for a given user."""
-    if user in leaderboard:
-        leaderboard[user] += points
-    else:
-        leaderboard[user] = points
-    return leaderboard[user]
+
+def update_user_points(username: str, points: int):
+    """Update the points for a given user in the database."""
+    try:
+        with engine.connect() as conn:
+            # First get user_id from users table
+            user_result = conn.execute(
+                text("SELECT id FROM users WHERE username = :username"),
+                {"username": username}
+            )
+            user = user_result.fetchone()
+            
+            if not user:
+                print(f"User {username} not found in users table")
+                return 0
+                
+            user_id = user[0]
+            
+            # Check if user exists in leaderboard
+            result = conn.execute(
+                text("SELECT points FROM leaderboard WHERE user_id = :user_id"),
+                {"user_id": user_id}
+            )
+            existing = result.fetchone()
+            
+            if existing:
+                # Update existing points
+                new_points = existing[0] + points
+                conn.execute(
+                    text("UPDATE leaderboard SET points = :points, last_updated = CURRENT_TIMESTAMP WHERE user_id = :user_id"),
+                    {"points": new_points, "user_id": user_id}
+                )
+            else:
+                # Insert new user
+                new_points = points
+                conn.execute(
+                    text("INSERT INTO leaderboard (user_id, points) VALUES (:user_id, :points)"),
+                    {"user_id": user_id, "points": new_points}
+                )
+            conn.commit()
+            return new_points
+    except Exception as e:
+        print(f"Error updating leaderboard: {e}")
+        return 0
+    
 
 def get_leaderboard():
     """Return the leaderboard sorted by points in descending order."""
-    sorted_leaderboard = sorted(leaderboard.items(), key=lambda item: item[1], reverse=True)
-    return [{"user": user, "points": points} for user, points in sorted_leaderboard]
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT username, points 
+                FROM v_leaderboard 
+                ORDER BY points DESC
+            """))
+            leaderboard_data = result.fetchall()
+            return [{"username": user[0], "points": user[1]} for user in leaderboard_data]
+    except Exception as e:
+        print(f"Error fetching leaderboard from v_leaderboard: {e}")
+        return []

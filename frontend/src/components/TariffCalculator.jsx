@@ -31,9 +31,28 @@ function TariffCalculator() {
   const [hour, setHour] = useState(18);
   const [currentCost, setCurrentCost] = useState(null);
   const [loading, setLoading] = useState(false);
+const [currentUser, setCurrentUser] = useState(null);
 
   const previousCost = 1200;
   const [pointsMessage, setPointsMessage] = useState("");
+  
+  // Get current user from authentication
+    useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const response = await fetchWithAuth('http://localhost:5000/auth/verify');
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUser(data.user.username);
+        }
+      } catch (error) {
+        console.error("Error getting current user:", error);
+      }
+    };
+
+    getCurrentUser();
+  }, []);
+
   // Fetch current cost from backend
   useEffect(() => {
     // Debounce the fetch so quick slider moves don't trigger many requests.
@@ -75,18 +94,17 @@ function TariffCalculator() {
 
 
   // Send a simple log each time the computed cost updates (debounced fetch sets currentCost)
-useEffect(() => {
-    if (currentCost === null) return;
+  useEffect(() => {
+    if (currentCost === null || !currentUser) return;
 
     let mounted = true;
-
-        (async () => {
+    (async () => {
       try {
         const response = await fetch("http://localhost:5000/calculate/tariff_points", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            user: "Ioana Vasilescu", // 🔧 You can make this dynamic later
+            user: currentUser, 
             previous_cost: previousCost,
             estimated_cost: currentCost
           }),
@@ -106,7 +124,7 @@ useEffect(() => {
     return () => {
       mounted = false;
     };
-  }, [currentCost]);
+  }, [currentCost, currentUser]);
 
 
     // Send a simple log each time the computed cost updates (debounced fetch sets currentCost)
