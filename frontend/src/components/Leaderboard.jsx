@@ -12,13 +12,13 @@ function Leaderboard() {
     const fetchData = async () => {
       try {
         // Fetch current user
-        const userResponse = await fetchWithAuth('http://localhost:5000/auth/verify');
+        const userResponse = await fetchWithAuth('/auth/verify');
         if (userResponse.ok) {
           const userData = await userResponse.json();
           setCurrentUser(userData.user.username);
           
           // Now fetch leaderboard with the current user available
-          const leaderboardResponse = await fetch("http://localhost:5000/leaderboard");
+          const leaderboardResponse = await fetch("/leaderboard");
           const leaderboardData = await leaderboardResponse.json();
           console.log("Current user:", userData.user.username);
           console.log("Leaderboard users:", leaderboardData.leaderboard);

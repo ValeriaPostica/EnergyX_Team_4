@@ -18,7 +18,14 @@ load_dotenv()
 
 api_key = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI(api_key=api_key)
+client = None
+try:
+    if api_key:
+        client = OpenAI(api_key=api_key)
+    else:
+        print("Warning: OPENAI_API_KEY not set in aiProvider. AI features will be disabled.")
+except Exception as e:
+    print(f"Warning: Could not initialize OpenAI client in aiProvider: {e}")
 
 
 # Set your OpenAI API key here or via environment variable OPENAI_API_KEY
@@ -72,6 +79,8 @@ def _parse_text_fallback(text: str) -> list:
 
 
 def get_ai_recommendations(client, energy_data: dict, model: str = "gpt-4o-mini") -> list:
+	if not client:
+		return []
 	# Prepare a summary for the AI
 	summary = "Energy summary for locations at 08.06.2025 12:00:00:\n"
 	sorted_locations = sorted(energy_data.items(), key=lambda item: item[1], reverse=True)

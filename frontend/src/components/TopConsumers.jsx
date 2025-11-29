@@ -9,7 +9,7 @@ const TopConsumers = () => {
   useEffect(() => {
     const fetchConsumers = async () => {
       try {
-        const response = await fetchWithAuth("http://localhost:5000/consumption");
+        const response = await fetchWithAuth("/consumption");
         console.log("Response status:", response);
         const result = await response.json();
         setConsumers(result || {});

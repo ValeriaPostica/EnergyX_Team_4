@@ -8,7 +8,7 @@ const RecommendationsPage = () => {
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        const response = await fetchWithAuth("http://localhost:5000/ai");
+        const response = await fetchWithAuth("/ai");
         const data = await response.json();
         setRecommendations(data);
       } catch (error) {

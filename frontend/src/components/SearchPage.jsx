@@ -16,7 +16,7 @@ const SearchPage = () => {
     const fetchCityColors = async () => {
       setLoading(true);
       try {
-        const response = await fetchWithAuth("http://localhost:5000/color", {
+        const response = await fetchWithAuth("/color", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ time }),

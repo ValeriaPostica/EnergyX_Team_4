@@ -19,7 +19,7 @@ function Chatbot() {
     setLoading(true);
 
     try {
-        const response = await fetchWithAuth("http://localhost:5000/ai/chat", {
+        const response = await fetchWithAuth("/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),

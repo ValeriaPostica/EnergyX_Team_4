@@ -40,7 +40,7 @@ const [currentUser, setCurrentUser] = useState(null);
     useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const response = await fetchWithAuth('http://localhost:5000/auth/verify');
+        const response = await fetchWithAuth('/auth/verify');
         if (response.ok) {
           const data = await response.json();
           setCurrentUser(data.user.username);
@@ -64,7 +64,7 @@ const [currentUser, setCurrentUser] = useState(null);
       const fetchTariff = async () => {
         setLoading(true);
         try {
-          const resp = await fetchWithAuth(`http://localhost:5000/tariff`, { signal: controller.signal });
+          const resp = await fetchWithAuth(`/tariff`, { signal: controller.signal });
           if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
           const json = await resp.json();
           // Compute estimated cost using the returned distribution value for the selected hour
@@ -100,7 +100,7 @@ const [currentUser, setCurrentUser] = useState(null);
     let mounted = true;
     (async () => {
       try {
-        const response = await fetch("http://localhost:5000/calculate/tariff_points", {
+        const response = await fetch("/calculate/tariff_points", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -134,7 +134,7 @@ const [currentUser, setCurrentUser] = useState(null);
     let mounted = true;
     (async () => {
       try {
-        await fetchWithAuth("http://localhost:5000/simple_log", {
+        await fetchWithAuth("/simple_log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ line: `2)The previous cost of the tariff the user was charged is: ${previousCost} MDL; The current estimated cost is: ${currentCost} MDL` }),

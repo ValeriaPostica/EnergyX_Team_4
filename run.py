@@ -1,6 +1,8 @@
 import asyncio
 import signal
-import os 
+import os
+import sys
+
 # commands to start each part
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) 
 
@@ -10,7 +12,7 @@ BACKEND_DIR = os.path.join(ROOT_DIR, "backend", "api")
 # We want to run both the frontend dev server (vite) and the frontend Node server
 # `npm run server`. Represent them as a list of commands so we can start both.
 FRONTEND_CMDS = [["npm", "run", "dev"], ["npm", "run", "server"]]  # adjust if needed
-BACKEND_CMD = ["flask", "run"]  
+BACKEND_CMD = [sys.executable, "-m", "flask", "run"]
 
 if os.name == "nt":
     import shutil
@@ -22,19 +24,9 @@ if os.name == "nt":
             cmd[0] = npm_path
     else:
         print("Warning: 'npm' not found in PATH. Make sure it's installed and available.")
-    venv_path = os.environ.get("VIRTUAL_ENV")
-
-    if not venv_path:
-        print("Warning: VIRTUAL_ENV not set. Make sure the virtual environment is activated!!")
-    flask_path = os.path.join(venv_path, "Scripts", "flask")
-
-    if flask_path and os.path.isfile(flask_path):
-        BACKEND_CMD[0] = flask_path
-    else:
-        print("Warning: 'flask' not found in virtual environment. Make sure the virtual environment is activated.")
-
-    print("VIRTUAL_ENV:", venv_path)
-    print("FLASK_PATH:", flask_path)
+    
+    # We use sys.executable to run flask, so we don't need to search for flask executable manually
+    print("Using Python executable:", sys.executable)
 
 
 env = os.environ.copy()

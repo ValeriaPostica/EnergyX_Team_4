@@ -17,7 +17,7 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
         setErrorMessage("");
 
         try {
-            const response = await fetch("http://localhost:5000/auth/login", {
+            const response = await fetch("/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -43,7 +43,7 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
 
                 // Clear simple_log on login
                 if (data.user.role === "consumer") {
-                    fetch("http://localhost:5000/simple_log/clear", {
+                    fetch("/simple_log/clear", {
                         method: "POST",
                         headers: {
                         'Authorization': `Bearer ${data.token}`
@@ -52,7 +52,7 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
                         console.warn("Could not clear simple_log:", err)
                     );
 
-                    fetch("http://localhost:5000/simple_log", {
+                    fetch("/simple_log", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -78,7 +78,7 @@ function AuthPage({ setCurrentPage, setRole, setUserId }) {
         setErrorMessage("");
 
         try {
-            const response = await fetch("http://localhost:5000/auth/register", {
+            const response = await fetch("/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

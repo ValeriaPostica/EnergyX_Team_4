@@ -38,8 +38,8 @@ const HourlyConsumption = () => {
 
         let yesterday = 6;
         let today = 7;
-        const y_res = await fetchWithAuth(`http://localhost:5000/diff/${userId}/${yesterday}`);
-        const t_res = await fetchWithAuth(`http://localhost:5000/diff/${userId}/${today}`);
+        const y_res = await fetchWithAuth(`/diff/${userId}/${yesterday}`);
+        const t_res = await fetchWithAuth(`/diff/${userId}/${today}`);
         
         // to delete
         const example_schedule = [
@@ -49,7 +49,7 @@ const HourlyConsumption = () => {
           ["energy_saving", 18, 21]
         ];
         const scheduleParam = encodeURIComponent(JSON.stringify(example_schedule));
-        const pred_res = await fetchWithAuth(`http://localhost:5000/pred/simulate/${userId}/${scheduleParam}`);
+        const pred_res = await fetchWithAuth(`/pred/simulate/${userId}/${scheduleParam}`);
         const pred_json = await pred_res.json();
         console.log("AAAA");
         console.log(pred_json);
@@ -61,7 +61,7 @@ const HourlyConsumption = () => {
         let result2;
         try {
 
-          const response2 = await fetchWithAuth(`http://localhost:5000/pred/${userId}`);
+          const response2 = await fetchWithAuth(`/pred/${userId}`);
           result2 = await response2.json();
           console.log("Fetched prediction data:", result2);
         } catch (predError) {
@@ -113,7 +113,7 @@ const HourlyConsumption = () => {
 
         (async () => {
       try {
-        await fetchWithAuth("http://localhost:5000/simple_log", {
+        await fetchWithAuth("/simple_log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
 

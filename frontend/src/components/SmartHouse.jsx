@@ -12,7 +12,7 @@ function SmartHouse() {
   // helper to POST an updated status object to the server
   const postStatusObject = async (updated) => {
     try {
-      await fetchWithAuth("http://localhost:4000/api/status", {
+      await fetchWithAuth("/api/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updated),
@@ -25,7 +25,7 @@ function SmartHouse() {
   // helper to fetch current status from server and apply to component state
   const fetchStatus = async () => {
     try {
-      const res = await fetchWithAuth("http://localhost:4000/api/status");
+      const res = await fetchWithAuth("/api/status");
       const data = await res.json();
       setTemperature(data.temperature);
       setMotion(data.motion);
@@ -92,7 +92,7 @@ function SmartHouse() {
     setMotion(updated.motion);
     setEnergyUsage(updated.energyUsage);
 
-    await fetchWithAuth("http://localhost:4000/api/status", {
+    await fetchWithAuth("/api/status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updated),
@@ -106,7 +106,7 @@ function SmartHouse() {
 
           (async () => {
       try {
-        await fetchWithAuth("http://localhost:5000/simple_log", {
+        await fetchWithAuth("/simple_log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ line: `3)The current temperature is: ${temperature}°C; Motion detected: ${motion ? "Yes" : "No"}; Energy usage: ${energyUsage} kWh; The thermostat is ${thermostatOn ? "On" : "Off"}; The air conditioner is ${acOn ? "On" : "Off"}; The lights are ${lightsOn ? "On" : "Off"}; Energy saver mode is ${energySaverOn ? "On" : "Off"}` }),

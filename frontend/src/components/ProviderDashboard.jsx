@@ -50,7 +50,7 @@ const ProviderDashboard = ({ setCurrentPage }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetchWithAuth(`http://localhost:5000/region/all`);
+        const response = await fetchWithAuth(`/region/all`);
         const result = await response.json();
         console.log("Response status:", result);
         console.log(result)

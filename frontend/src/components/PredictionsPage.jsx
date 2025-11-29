@@ -34,8 +34,8 @@ const PredictionsPage = () => {
         const locationName = city.replace(/ă/g, 'a').replace(/î/g, 'i').replace(/ș/g, 's').replace(/ț/g, 't');
         
         const endpoint = timeRange === "24h" 
-          ? `http://localhost:5000/pred/loc/${locationName}`
-          : `http://localhost:5000/pred/loc/${locationName}/week`;
+          ? `/pred/loc/${locationName}`
+          : `/pred/loc/${locationName}/week`;
         
         console.log(`Fetching predictions for ${city} (${locationName}) from: ${endpoint}`);
         const response = await fetchWithAuth(endpoint);

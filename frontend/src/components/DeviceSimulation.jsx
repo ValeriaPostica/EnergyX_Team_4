@@ -99,7 +99,7 @@ const DeviceSimulation = ({ userId: propUserId }) => {
       }
 
       try {
-        const resp = await fetchWithAuth(`http://localhost:5000/pred/${userId}`);
+        const resp = await fetchWithAuth(`/pred/${userId}`);
         if (!resp.ok) {
           throw new Error(`Baseline forecast failed (HTTP ${resp.status})`);
         }
@@ -207,7 +207,7 @@ const DeviceSimulation = ({ userId: propUserId }) => {
       const scheduleParam = encodeURIComponent(JSON.stringify(payload));
 
       const resp = await fetchWithAuth(
-        `http://localhost:5000/pred/simulate/${userId}/${scheduleParam}`
+        `/pred/simulate/${userId}/${scheduleParam}`
       );
       if (!resp.ok) {
         throw new Error(`Simulation failed (HTTP ${resp.status})`);
@@ -238,7 +238,7 @@ const DeviceSimulation = ({ userId: propUserId }) => {
       });
 
       try {
-        await fetchWithAuth("http://localhost:5000/simple_log", {
+        await fetchWithAuth("/simple_log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
