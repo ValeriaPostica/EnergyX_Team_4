@@ -1,19 +1,20 @@
 from flask import Flask, jsonify
 from flask import request
 from flask_cors import CORS
+from pydantic import BaseModel, ValidationError
 from auth import auth_bp
 import aiProvider
 import aiCustomer
 import os
 import openai
-from model.xlstm_runner import m_eval
+from model.xlstm_runner import m_eval, m_eval_devices
 #from leaderBoard import smart_house_calculator, update_user_points
 from retrieve_data import get_location_color, get_series, general_info, regional_consumption, calc_timeseries_from_db, get_series_country, get_all_keys
 # Commented our lines below and above use ai implementations
 from gauss_tarrif import precompute_gaussian_peak
 from simple_log_handler import simple_log, simple_log_clear
 import json
-
+from migrations import load_migrations
 import hashlib
 
 from auth import auth_bp
@@ -30,11 +31,18 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+IS_PROD = str(os.getenv("IS_PROD", "false")).lower() == "true"
+
+if IS_PROD:
+    load_migrations()
 
 client = None
 
 try:
-    client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    if OPENAI_API_KEY:
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    else:
+        print("Warning: OPENAI_API_KEY not set.")
 except Exception as e:
     print(f"Warning: Could not initialize OpenAI client: {e}")
     
@@ -98,7 +106,14 @@ def tariff(current_user):
 @app.route("/region/all")
 @token_required
 def get_regions(current_user):
-    return calc_timeseries_from_db()
+    try:
+        return calc_timeseries_from_db()
+    except Exception as e:
+        print(f"Error in /region/all: {e}")
+        return jsonify({"error": str(e)}), 500
+
+class OpenAiMessage(BaseModel):
+    message: str
 
 @app.route("/ai/chat", methods=['POST'])
 @token_required
@@ -110,7 +125,14 @@ def chat_q(current_user):
         return jsonify({"error": "Missing 'message' field"}), 400
     
     message = json_data["message"]
-    return {"response": aiCustomer.get_ai_response(message)}
+    try:
+        return {"response": aiCustomer.get_ai_response(message)}
+    except ValidationError:
+        return jsonify({"error": "Invalid input format"}), 400
+    except Exception as e:
+        print(f"Error in /ai/chat : {e}")
+        return jsonify({"error": "Something went wrong"}), 500
+
 
 @app.route("/pred/<user_id>")
 @token_required
@@ -206,8 +228,64 @@ def pred_location_week(current_user, location_name):
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/pred/simulate/<user_id>/<schedule>")
+@token_required
+def pred_simulate(current_user, user_id, schedule):
+    """Simulate device schedule for a user.
 
-location_data = regional_consumption()
+    The `schedule` path parameter may be a URL-encoded JSON array, e.g.
+    %5B%5B%22thermostat%22%2C12%2C15%5D%2C...%5D. We attempt to decode JSON
+    and normalize it to a list of (device, start, end) tuples expected by
+    `m_eval_devices`.
+    """
+    try:
+        # Try to parse schedule as JSON (frontend sends encoded JSON in the path)
+        parsed_schedule = None
+        try:
+            parsed_schedule = json.loads(schedule)
+        except Exception:
+            # If parsing fails, leave as raw string (will be handled below)
+            parsed_schedule = schedule
+
+        # Normalize to list of (device, start, end) tuples
+        normalized = []
+        if isinstance(parsed_schedule, list):
+            for item in parsed_schedule:
+                if (isinstance(item, (list, tuple)) and len(item) >= 3):
+                    try:
+                        device = str(item[0])
+                        start = int(item[1])
+                        end = int(item[2])
+                        normalized.append((device, start, end))
+                    except Exception:
+                        # Skip malformed entries
+                        continue
+        else:
+            # If schedule wasn't JSON/list, return an error to the client
+            return jsonify({"error": "Schedule must be a JSON array of [device, start, end]"}), 400
+
+        if not normalized:
+            return jsonify({"error": "Empty or invalid schedule provided"}), 400
+
+        series = get_series(user_id)
+        pred_series = m_eval_devices(series=series, schedule=normalized, week=False)
+        return jsonify(pred_series)
+
+    except ValueError:
+        return jsonify({"error": "Invalid user ID"}), 400
+    except Exception as e:
+        # Return a JSON error instead of an HTML traceback
+        return jsonify({"error": str(e)}), 500
+
+
+location_data = {}
+try:
+    location_data = regional_consumption()
+except Exception as e:
+    print(f"Warning: Could not fetch regional consumption: {e}")
+    location_data = {}
+
 @app.route("/consumption")
 @token_required
 def get_location_consumption(current_user):
@@ -217,7 +295,7 @@ def get_location_consumption(current_user):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route("/color", methods=['POST'])
+@app.route("/color", methods=['POST']) #Why this is POST?, This feature is not compleate
 @token_required
 def give_color(current_user):
     try:
@@ -236,19 +314,29 @@ def give_color(current_user):
         return jsonify({"error": str(e)}), 500
 
     
-response = aiProvider.get_ai_recommendations(client, location_data)
+response = []
+if client and location_data:
+    try:
+        response = aiProvider.get_ai_recommendations(client, location_data)
+    except Exception as e:
+        print(f"Warning: Could not get AI recommendations: {e}")
+        response = []
+else:
+    print("Warning: Skipping AI recommendations (client or data missing)")
+    response = []
+
 @app.route("/ai")
 @token_required
 def get_ai_resp(current_user):
-    return response
+    return jsonify(response)
 
-@app.route("/simple_log", methods=["POST"])
+@app.route("/simple_log", methods=["POST"]) #Why?
 @token_required
 def route_simple_log(current_user):
     return simple_log()
 
 
-@app.route("/simple_log/clear", methods=["POST"])
+@app.route("/simple_log/clear", methods=["POST"]) #Why?
 @token_required
 def route_simple_log_clear(current_user):
     return simple_log_clear()
@@ -294,9 +382,101 @@ def route_smart_house_points():
         "message": f"You {action} {abs(earned)} {points_text}! Total: {total} points"
     })
 """
+
+@app.route("/check-leaderboard-table", methods=["GET"])
+def check_leaderboard_table():
+    """Check if leaderboard table exists"""
+    try:
+        from auth import engine, text
+
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'leaderboard'
+                )
+            """))
+            exists = result.fetchone()[0]
+
+            return jsonify({"table_exists": exists})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/leaderboard/populate-existing", methods=["POST"])
+def populate_existing_users():
+    """Populate leaderboard table with existing users using user_id"""
+    try:
+        from auth import engine, text
+        
+        with engine.connect() as conn:
+            # Get all users with their IDs
+            result = conn.execute(text("SELECT id, username FROM users"))
+            users = result.fetchall()
+            
+            print(f"DEBUG: Found {len(users)} users to add to leaderboard")
+            
+            added_count = 0
+            existing_count = 0
+            
+            for user_id, username in users:
+                # Check if user already exists in leaderboard
+                existing = conn.execute(
+                    text("SELECT user_id FROM leaderboard WHERE user_id = :user_id"),
+                    {"user_id": user_id}
+                ).fetchone()
+                
+                if existing:
+                    print(f"DEBUG: User {username} already in leaderboard, skipping")
+                    existing_count += 1
+                else:
+                    # Insert new user using user_id
+                    conn.execute(
+                        text("INSERT INTO leaderboard (user_id, points) VALUES (:user_id, 0)"),
+                        {"user_id": user_id}
+                    )
+                    added_count += 1
+                    print(f"DEBUG: Added user {username} (ID: {user_id}) to leaderboard")
+            
+            conn.commit()
+            
+            # Verify the results
+            leaderboard_count = conn.execute(text("SELECT COUNT(*) FROM leaderboard")).fetchone()[0]
+            
+            return jsonify({
+                "message": f"Leaderboard population completed",
+                "users_processed": len(users),
+                "users_added": added_count,
+                "users_already_existed": existing_count,
+                "total_in_leaderboard": leaderboard_count
+            })
+            
+    except Exception as e:
+        print(f"ERROR in populate-existing: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# Main leaderboard endpoints
 @app.route("/leaderboard", methods=["GET"])
 def route_leaderboard():
+    """Get the current leaderboard"""
+    from leaderBoard import get_leaderboard
     return jsonify({"leaderboard": get_leaderboard()})
+
+@app.route("/points/update", methods=["POST"])
+@token_required
+def update_points(current_user):
+    """Update points for current user (for testing)"""
+    from leaderBoard import update_user_points
+    data = request.get_json()
+    points = data.get('points', 0)
+
+    new_total = update_user_points(current_user['username'], points)
+
+    return jsonify({
+        "message": "Points updated",
+        "username": current_user['username'],
+        "points_added": points,
+        "total_points": new_total
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
