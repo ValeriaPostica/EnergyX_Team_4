@@ -1,5 +1,26 @@
 # Changelog
 
+## [Release: EnergyX v2.0.0](https://github.com/ValeriaPostica/EnergyX_Team_4/releases/tag/v2.0.0)
+**November 29, 2025**
+
+We are proud to announce the major release of EnergyX v2.0.0! This milestone introduces a fully deployable architecture, a comprehensive gamification ecosystem to drive user engagement, and advanced reporting tools for deep energy insights.
+
+*   **Deployment & Architecture:**
+    *   Streamlined deployment process with a new `DEPLOYMENT.md` guide and automated setup scripts.
+    *   Enhanced `run.py` orchestrator for simultaneous startup of Backend, Frontend, and IoT services.
+    *   Automated frontend URL configuration for seamless port forwarding and remote access.
+*   **Gamification Ecosystem:**
+    *   **Smart House Points Engine:** Implemented complex logic to award points based on real-time device usage (e.g., maintaining optimal thermostat ranges, turning off lights in empty rooms).
+    *   **Interactive Leaderboard:** Real-time ranking system allowing users to compete with neighbors, fostering a community of energy savers.
+    *   **Behavioral Rewards:** Users now receive instant feedback and points for enabling "Energy Saving Mode" and reducing peak-hour consumption.
+*   **Advanced Reporting:**
+    *   **Detailed Consumption Reports:** Generate granular reports breaking down energy usage by device category and time of day.
+    *   **Cost Analysis:** Visual breakdowns of estimated costs vs. actual bill projections based on current tariff models.
+    *   **Efficiency Insights:** AI-driven summaries highlighting areas for improvement and potential savings.
+
+Tags:
+[Release] [Major] [Gamification] [Reporting] [Deployment]
+
 ## [Release: EnergyX v1.9.1](https://github.com/ValeriaPostica/EnergyX_Team_4/releases/tag/v1.9.1)
 **November 29, 2025**
 
