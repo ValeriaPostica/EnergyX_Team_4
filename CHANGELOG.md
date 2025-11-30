@@ -10,8 +10,8 @@ We are proud to announce the major release of EnergyX v2.0.0! This milestone int
     *   Enhanced `run.py` orchestrator for simultaneous startup of Backend, Frontend, and IoT services.
     *   Automated frontend URL configuration for seamless port forwarding and remote access.
 *   **Gamification Ecosystem:**
-    *   **Smart House Points Engine:** Implemented complex logic to award points based on real-time device usage (e.g., maintaining optimal thermostat ranges, turning off lights in empty rooms).
-    *   **Interactive Leaderboard:** Real-time ranking system allowing users to compete with neighbors, fostering a community of energy savers.
+    *   **Smart House Points Engine:** Implemented complex logic to award points based on real-time device usage (e.g., maintaining optimal thermostat ranges, turning off lights in empty rooms).[View commit](https://github.com/ValeriaPostica/EnergyX_Team_4/pull/57/commits/96165873e86d6a35c58a559593139ec8b8a15fde).
+    *   **Interactive Leaderboard:** Real-time ranking system allowing users to compete with neighbors, fostering a community of energy savers.[View commit](https://github.com/ValeriaPostica/EnergyX_Team_4/pull/57/commits/8c002942e97b2bf3ac4f3ca89a41bfdb5f440f7e).
     *   **Behavioral Rewards:** Users now receive instant feedback and points for enabling "Energy Saving Mode" and reducing peak-hour consumption.
 *   **Advanced Reporting:**
     *   **Detailed Consumption Reports:** Generate granular reports breaking down energy usage by device category and time of day.
@@ -29,6 +29,8 @@ We've introduced automated testing workflows and enhanced input validation to en
 *   **Testing:** Added GitHub Actions workflow `python-app.yml` for automated testing and CI/CD integration. Added comprehensive tests for main functionalities ([commit: 78e5d11](https://github.com/ValeriaPostica/EnergyX_Team_4/commit/78e5d11)).
 *   **Validation:** Implemented Pydantic validation for user input to ensure data integrity and robust error handling ([commit: ff12bac](https://github.com/ValeriaPostica/EnergyX_Team_4/commit/ff12bac)).
 *   **Quality Assurance:** Verified system stability with new test suites covering core features ([commit: 651a170](https://github.com/ValeriaPostica/EnergyX_Team_4/commit/651a170)).
+*   **Modify testing environment** Added project dependecies such as `requirements.txt` in the `python-app.yml` file. [View commit](https://github.com/ValeriaPostica/EnergyX_Team_4/pull/57/commits/d75e85e9f4d6ea468f023161812b43b166e34750).
+*   **Added database container** The testing environment needed access to the database in order to perform testing correctly. [View commit](https://github.com/ValeriaPostica/EnergyX_Team_4/pull/57/commits/66f2a014d9e610e540492922325ca37a286921ab).
 
 Tags:
 [Release] [Testing] [Validation] [CI/CD]
@@ -38,7 +40,9 @@ Tags:
 
 A significant update to the database schema and migration system, ensuring data consistency and scalability.
 
-*   **Database:** Added `v_data` view and `v_data.csv` snapshot for consistent data access and testing ([#50](https://github.com/ValeriaPostica/EnergyX_Team_4/pull/50)).
+*   **Database:** Added `v_data` view and `v_data.csv` snapshot for consistent data access and testing ([#50](https://github.com/ValeriaPostica/EnergyX_Team_4/pull/50))
+*   **Leaderboard:** Added `v_leaderboard`and `leaderboard` which work together with the `users` table.
+[View commit](https://github.com/ValeriaPostica/EnergyX_Team_4/pull/57/commits/d914f13fb9620fffbf5d78ca2c22697e5a2a961e)
 *   **Migrations:** Implemented new migration scripts to handle schema changes and data loading ([commit: 538b1d9](https://github.com/ValeriaPostica/EnergyX_Team_4/commit/538b1d9)).
 *   **Schema:** Added smart meter constraint to the user table to enforce data integrity ([commit: 49c8cfd](https://github.com/ValeriaPostica/EnergyX_Team_4/commit/49c8cfd)).
 *   **Data Management:** Standardized data loading procedures with `v_data.csv` snapshot ([commit: 08bd9a1](https://github.com/ValeriaPostica/EnergyX_Team_4/commit/08bd9a1)).
