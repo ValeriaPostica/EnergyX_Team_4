@@ -1,6 +1,6 @@
 import os
 
-root_dir = r"C:\Users\Nikita\Desktop\merge\EnergyX_Team_4\frontend\src"
+root_dir = r"frontend\src"
 replacements = {
     "http://localhost:5000": "",
     "http://localhost:4000": ""
