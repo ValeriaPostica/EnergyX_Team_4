@@ -17,6 +17,8 @@ import json
 from migrations import load_migrations
 import hashlib
 
+from notifications import detect_high_usage, get_ai_suggestion
+
 from auth import auth_bp
 from auth import token_required
 from leaderBoard import (
@@ -357,6 +359,26 @@ def route_tariff_points():
         "earned_points": earned,
         "total_points": total
     })
+
+@app.route("/notifications")
+@token_required
+def notifications_route(current_user):
+    if client is None:
+        return jsonify({"error": "AI client not initialized"}), 500
+
+    # 1. Detect high usage
+    alerts = detect_high_usage(location_data)
+
+    # 2. Ask AI for suggestion for each alert
+    for alert in alerts:
+        alert["suggestion"] = get_ai_suggestion(
+            client,
+            alert["location"],
+            alert["usage"]
+        )
+
+    return jsonify({"alerts": alerts})
+
 """
 @app.route("/calculate/smart_house_points", methods=["POST"])
 def route_smart_house_points():

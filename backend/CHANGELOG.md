@@ -9,6 +9,14 @@
 - added password hashing
 - implemented email format validation
 - smart meter ID validation for both user roles
+- notifications module:
+    - detects locations with high energy usage
+    - generates AI suggestions for providers
+- new API route: /notifications — returns usage alerts + AI recommendation
+- AI integration
+    - get_ai_suggestion() inside the notifications system
+    - reused existing OpenAI client inside app.py
+    - logic to call the AI model only when alerts are detected
 
 **Frontend**
 - redesigned authentication UI with role selection (Provider/Consumer)
