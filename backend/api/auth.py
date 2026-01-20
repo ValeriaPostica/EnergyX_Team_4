@@ -9,11 +9,13 @@ import datetime
 from functools import wraps
 import os
 
+from get_db_string import get_db_string
+
 auth_bp = Blueprint('auth', __name__)
 
 #db connection
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:11111@localhost:5433/postgres")
+DATABASE_URL = os.getenv("DATABASE_URL", get_db_string())
 engine = create_engine(DATABASE_URL)
 
 # secret key for jwt

@@ -3,11 +3,13 @@ import sys
 import os
 from typing import Optional
 from dotenv import load_dotenv
+from get_db_string import get_db_string
+
 
 load_dotenv()
 
 # Usage: python series.py <contour_id>
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:11111@localhost:5433/postgres")
+DATABASE_URL = os.getenv("DATABASE_URL", get_db_string())
 engine = create_engine(DATABASE_URL)
 
 
