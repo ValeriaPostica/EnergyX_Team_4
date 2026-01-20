@@ -41,7 +41,7 @@ from torch import nn
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # backend/api/model/
 API_DIR = os.path.dirname(SCRIPT_DIR)                    # backend/api/
 BACKEND_DIR = os.path.dirname(API_DIR)                   # backend/
-MODEL_DATA_DIR = os.path.join(BACKEND_DIR, "data", "model_data")
+MODEL_DATA_DIR = os.path.join(API_DIR, "data", "model_data")
 MODEL_PATH = os.path.join(MODEL_DATA_DIR, "model.pt")
 
 # -----------------------------------------------------------------------------
