@@ -1,0 +1,26 @@
+server {
+    listen 80;
+
+    # Frontend Static Files
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 1. Backend Proxy (Port 5000)
+    # This matches all your specific routes
+    location ~ ^/(auth|diff|keys|general_info|tariff|region|ai|pred|consumption|color|simple_log|calculate|check-leaderboard-table|leaderboard|points) {
+        proxy_pass http://${BACKEND_IP}:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # 2. IoT Proxy (Port 4000)
+    location /api/status {
+        proxy_pass http://${IOT_IP}:4000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
