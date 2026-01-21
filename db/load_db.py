@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
+from sqlalchemy.exc import IntegrityError
 import os
 import psycopg2
 import sys
-
+from werkzeug.security import generate_password_hash
 
 # Take the params from env vars
 DB_HOST = os.getenv('DB_HOST', 'localhost')
@@ -119,6 +120,21 @@ def process_data():
     locations.to_parquet('locations.parquet')
     contour.to_parquet('contour.parquet')
     contour_data.to_parquet('contour_data.parquet')
+    
+    prepare_additional_data()
+
+def prepare_additional_data():
+    users = pd.read_json('users.json')
+    leaderboard = pd.read_json('leaderboard.json')
+
+    # Ensure everthing is a string for users
+    users = users.astype(str)
+
+    users['password'] = users['password'].apply(lambda x: generate_password_hash(x))
+    
+    users.to_parquet('users.parquet')
+    leaderboard.to_parquet('leaderboard.parquet')
+    
 
 def load_data():
 
@@ -127,6 +143,8 @@ def load_data():
         locations = pd.read_parquet('locations.parquet')
         contour = pd.read_parquet('contour.parquet')
         contour_data = pd.read_parquet('contour_data.parquet')
+        users = pd.read_parquet('users.parquet')
+        leaderboard = pd.read_parquet('leaderboard.parquet')
     except Exception as e:
         print(f"Error reading parquet files: {e}")
         exit(1)
@@ -147,9 +165,14 @@ def load_data():
 
     print("Writing data to database...")
     # Write dataframes to the database
-    write_to_db(engine, locations, 'locations')
-    write_to_db(engine, contour, 'contour')
-    write_to_db(engine, contour_data, 'contour_data')
+    try:
+        write_to_db(engine, locations, 'locations')
+        write_to_db(engine, contour, 'contour')
+        write_to_db(engine, contour_data, 'contour_data')
+        write_to_db(engine, users, 'users')
+    except IntegrityError:
+        pass
+    write_to_db(engine, leaderboard, 'leaderboard')
     print("Data loading complete.")
 
 def main():
