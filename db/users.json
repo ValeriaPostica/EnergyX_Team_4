@@ -1,10 +1,122 @@
 [
-  {
-    "id": "1",
-    "username": "dani",
-    "email": "dani@dani.com",
-    "password": "123",
-    "role": "provider",
-    "smart_meter_id": "14101511"
-  }
+    {
+        "id": "1",
+        "username": "user",
+        "email": "user@example.com",
+        "password": "123",
+        "role": "consumer",
+        "smart_meter_id": "14101511"
+    },
+    {
+        "id": "2",
+        "username": "Alice Green",
+        "email": "alice@example.com",
+        "password": "123",
+        "role": "consumer",
+        "smart_meter_id": "14381545"
+    },
+    {
+        "id": "3",
+        "username": "Bob Solar",
+        "email": "bob@example.com",
+        "password": "123",
+        "role": "provider",
+        "smart_meter_id": "14381599"
+    },
+    {
+        "id": "4",
+        "username": "Carol Eco",
+        "email": "carol@example.com",
+        "password": "123",
+        "role": "consumer",
+        "smart_meter_id": "14381602"
+    },
+    {
+        "id": "5",
+        "username": "David Wind",
+        "email": "david@example.com",
+        "password": "123",
+        "role": "provider",
+        "smart_meter_id": "14381609"
+    },
+    {
+        "id": "6",
+        "username": "Emma Save",
+        "email": "emma@example.com",
+        "password": "123",
+        "role": "consumer",
+        "smart_meter_id": "14381610"
+    },
+    {
+        "id": "7",
+        "username": "Frank Power",
+        "email": "frank@example.com",
+        "password": "123",
+        "role": "consumer",
+        "smart_meter_id": "14381611"
+    },
+    {
+        "id": "8",
+        "username": "Grace Hydro",
+        "email": "grace@example.com",
+        "password": "123",
+        "role": "provider",
+        "smart_meter_id": "14381613"
+    },
+    {
+        "id": "9",
+        "username": "Henry Volt",
+        "email": "henry@example.com",
+        "password": "123",
+        "role": "consumer",
+        "smart_meter_id": "14381617"
+    },
+    {
+        "id": "10",
+        "username": "Ian Current",
+        "email": "ian@example.com",
+        "password": "123",
+        "role": "provider",
+        "smart_meter_id": "14381618"
+    },
+    {
+        "id": "11",
+        "username": "Julia Grid",
+        "email": "julia@example.com",
+        "password": "123",
+        "role": "consumer",
+        "smart_meter_id": "14381619"
+    },
+    {
+        "id": "12",
+        "username": "Kevin Charge",
+        "email": "kevin@example.com",
+        "password": "123",
+        "role": "provider",
+        "smart_meter_id": "14381622"
+    },
+    {
+        "id": "13",
+        "username": "Laura Bright",
+        "email": "laura@example.com",
+        "password": "123",
+        "role": "consumer",
+        "smart_meter_id": "14381626"
+    },
+    {
+        "id": "14",
+        "username": "Mike Arc",
+        "email": "mike@example.com",
+        "password": "123",
+        "role": "provider",
+        "smart_meter_id": "14381627"
+    },
+    {
+        "id": "15",
+        "username": "provider",
+        "email": "provider@example.com",
+        "password": "123",
+        "role": "provider",
+        "smart_meter_id": "14381627"
+    }
 ]
