@@ -1,7 +1,72 @@
 [
-  {
-    "user_id": "1",
-    "points": 1250,
-    "last_updated": null
-  }
+    {
+        "user_id": "1",
+        "points": 124,
+        "last_updated": null
+    },
+    {
+        "user_id": "2",
+        "points": 198,
+        "last_updated": null
+    },
+    {
+        "user_id": "3",
+        "points": 63,
+        "last_updated": null
+    },
+    {
+        "user_id": "4",
+        "points": 151,
+        "last_updated": null
+    },
+    {
+        "user_id": "5",
+        "points": 77,
+        "last_updated": null
+    },
+    {
+        "user_id": "6",
+        "points": 200,
+        "last_updated": null
+    },
+    {
+        "user_id": "7",
+        "points": 89,
+        "last_updated": null
+    },
+    {
+        "user_id": "8",
+        "points": 140,
+        "last_updated": null
+    },
+    {
+        "user_id": "9",
+        "points": 52,
+        "last_updated": null
+    },
+    {
+        "user_id": "10",
+        "points": 173,
+        "last_updated": null
+    },
+    {
+        "user_id": "11",
+        "points": 199,
+        "last_updated": null
+    },
+    {
+        "user_id": "12",
+        "points": 68,
+        "last_updated": null
+    },
+    {
+        "user_id": "13",
+        "points": 152,
+        "last_updated": null
+    },
+    {
+        "user_id": "14",
+        "points": 110,
+        "last_updated": null
+    }
 ]

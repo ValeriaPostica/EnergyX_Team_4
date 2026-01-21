@@ -170,9 +170,9 @@ def load_data():
         write_to_db(engine, contour, 'contour')
         write_to_db(engine, contour_data, 'contour_data')
         write_to_db(engine, users, 'users')
+        write_to_db(engine, leaderboard, 'leaderboard')
     except IntegrityError:
         pass
-    write_to_db(engine, leaderboard, 'leaderboard')
     print("Data loading complete.")
 
 def main():
