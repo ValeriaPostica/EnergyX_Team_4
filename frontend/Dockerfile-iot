@@ -1,0 +1,11 @@
+FROM node:current-alpine
+
+WORKDIR /app
+
+RUN npm install express cors
+
+COPY server.js .
+
+EXPOSE 4000
+
+CMD [ "node", "server.js" ]

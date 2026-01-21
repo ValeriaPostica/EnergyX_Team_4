@@ -1,6 +1,7 @@
 
 import os
 import psycopg2
+from get_db_string import get_db_string
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) 
 def load_migrations():
@@ -8,11 +9,7 @@ def load_migrations():
 
     try:
         conn = psycopg2.connect(
-            host="localhost",
-            database="postgres",
-            user="postgres",
-            password="11111",
-            port="5433"
+            get_db_string()
         )
         
     except Exception as e:

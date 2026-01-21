@@ -34,6 +34,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 IS_PROD = str(os.getenv("IS_PROD", "false")).lower() == "true"
+print(f"IS_PROD={IS_PROD}")
 
 if IS_PROD:
     load_migrations()

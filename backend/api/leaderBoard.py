@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine, text
+from get_db_string import get_db_string
 
 # Stored users scores in memory for demonstration purposes
 leaderboard = {
@@ -6,7 +7,7 @@ leaderboard = {
 
 # Database connection 
 import os
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://postgres:11111@localhost:5433/postgres')
+DATABASE_URL = os.getenv('DATABASE_URL', get_db_string())
 engine = create_engine(DATABASE_URL)
 
 # Global state tracking (simple dictionaries)

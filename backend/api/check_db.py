@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine, inspect, text
+from get_db_string import get_db_string
 
-engine = create_engine("postgresql://postgres:11111@localhost:5433/postgres")
 
+
+engine = create_engine(get_db_string())
 # Check what tables exist
 insp = inspect(engine)
 schemas = insp.get_schema_names()

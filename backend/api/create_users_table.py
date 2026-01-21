@@ -1,8 +1,10 @@
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, Enum
 import enum
+from get_db_string import get_db_string
+
 
 #Database connection
-engine = create_engine("postgresql://postgres:11111@localhost:5433/postgres")
+engine = create_engine(get_db_string())
 metadata = MetaData()
 
 #define users' roles

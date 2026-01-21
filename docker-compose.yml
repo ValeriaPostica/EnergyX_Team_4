@@ -1,0 +1,82 @@
+services:
+  postgres:
+    container_name: pbl-db
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pbl_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "${DB_PORT}:5432"
+  pbl-db-init:
+    container_name: pbl-db-init
+    image: ghcr.io/the1dani/pbl-db-init:latest
+    build:
+      context: ./db  
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+  pbl-back:
+    container_name: pbl-back
+    image: ghcr.io/the1dani/pbl-back:latest
+    build:
+      context: ./backend/api
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      pbl-db-init:
+        condition: service_completed_successfully
+      
+    ports:
+      - "5000:5000"
+    environment:
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+  pbl-frontend:
+    container_name: pbl-frontend
+    image: ghcr.io/the1dani/pbl-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - pbl-back
+    environment:
+      - BACKEND_IP=pbl-back
+      - IOT_IP=pbl-iot 
+
+  pbl-iot:
+    container_name: pbl-iot
+    image: ghcr.io/the1dani/pbl-iot:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile-iot
+    ports:
+      - "4000:4000"
+
+volumes:
+  pbl_data:
